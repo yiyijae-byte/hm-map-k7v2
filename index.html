@@ -13,6 +13,7 @@
   --bg:#f3f5f4;--panel:#ffffff;--ink:#1c2826;--muted:#617270;--line:#dbe3e0;
   --accent:#1f6b5a;--accent-soft:#e2efe9;--new:#c0392b;--new-soft:#fbe9e6;--warn:#8a5a00;--warn-soft:#fbf1dc;--watch:#1f4fd1;
   --header:56px;--tabs:52px;
+  --shadow:0 1px 2px rgba(16,40,34,.07),0 2px 10px rgba(16,40,34,.05);
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -27,61 +28,85 @@ header .date{color:var(--muted);font-size:13px;white-space:nowrap}
 .chip.new{background:var(--new-soft);color:var(--new)}
 
 .layout{display:grid;grid-template-columns:420px 1fr;height:calc(100vh - var(--header))}
-.panel{overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);padding:16px 16px 40px;display:flex;flex-direction:column;gap:24px}
+.panel{overflow-y:auto;background:var(--bg);border-right:1px solid var(--line);padding:0 14px 40px;display:flex;flex-direction:column}
 .mapwrap{position:relative}
 #map{position:absolute;inset:0}
 
-section h2{font-size:14px;margin:0 0 10px;font-weight:700;color:var(--muted);letter-spacing:.04em;display:flex;align-items:center;gap:8px}
-section h2 .cnt{font-size:12px;background:var(--bg);border-radius:999px;padding:1px 8px;color:var(--ink)}
-.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel);display:flex;flex-direction:column;gap:4px}
-.card.new{border-color:var(--new);background:var(--new-soft)}
-.card .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
-.tag{display:inline-block;font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:1px 6px;font-weight:700}
-.tag.new{background:var(--new);color:#fff}
-.tag.dl{background:var(--warn-soft);color:var(--warn)}
-.tag.ok{background:#1f6b5a;color:#fff}
-.tag.cond{background:#8a5a00;color:#fff}
-.tag.no{background:#e4e7e6;color:#617270}
-.card.no{opacity:.75}
-.card .prep{font-size:13px;margin-top:6px;line-height:1.5} .card .prep b{color:var(--accent);margin-right:4px}
-.card .danji-tbl{margin-top:6px;font-size:12.5px;overflow-x:auto} .card .danji-tbl b{display:block;color:var(--accent);margin-bottom:4px}
-.card .danji-tbl table{border-collapse:collapse;width:100%} .card .danji-tbl th,.card .danji-tbl td{border-bottom:1px solid var(--line);padding:3px 5px;text-align:left;white-space:nowrap}
-.card .danji-tbl th{color:var(--muted);font-weight:600}
-.card .ask{align-self:flex-start;margin-top:6px;font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;padding:5px 10px;cursor:pointer}
-.card .ask:disabled{opacity:.6;cursor:default}
-.hidwrap{list-style:none} .hid{padding:8px 12px} .hid summary{font-size:13px;color:var(--muted)} .hid .list{margin-top:8px}
-.card a.title{font-weight:600;text-decoration:none;color:var(--ink);word-break:keep-all}
+.ptabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg);padding:12px 0 10px;margin-bottom:4px}
+.ptabs button{border:0;background:transparent;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 4px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.ptabs button span{font-size:11px;background:var(--line);color:var(--ink);border-radius:999px;padding:0 6px;line-height:17px;font-variant-numeric:tabular-nums}
+.ptabs button:hover{color:var(--ink)}
+.ptabs button.on{background:var(--panel);color:var(--accent);box-shadow:var(--shadow)}
+.ptabs button.on span{background:var(--accent);color:#fff}
+.pane{display:flex;flex-direction:column;gap:22px}
+.pane[hidden]{display:none}
+
+section h2{font-size:15px;margin:0 0 10px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+section h2 .cnt{font-size:12px;background:var(--line);border-radius:999px;padding:1px 8px;color:var(--ink);font-variant-numeric:tabular-nums}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.empty{color:var(--muted);font-size:13.5px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+
+.card{position:relative;overflow:hidden;border-radius:12px;padding:12px 14px 12px 18px;background:var(--panel);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--line)}
+.card.ok::before{background:var(--accent)} .card.cond::before{background:#c98a00} .card.no::before{background:#b8c2bf} .card.new::before{background:var(--new)}
+.card.no{opacity:.8}
+.card .top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;min-height:22px}
+.vd{font-size:11px;font-weight:700;border-radius:5px;padding:2px 7px;white-space:nowrap}
+.vd.ok{background:var(--accent);color:#fff} .vd.cond{background:#8a5a00;color:#fff} .vd.no{background:#e4e7e6;color:var(--muted)} .vd.newtag{background:var(--new);color:#fff}
+.card .src{color:var(--muted);font-weight:600}
+.dday{margin-left:auto;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dday.soon{background:var(--warn-soft);color:var(--warn)} .dday.hot{background:var(--new-soft);color:var(--new)}
+.card a.title{font-weight:650;font-size:15px;line-height:1.45;text-decoration:none;color:var(--ink);word-break:keep-all}
 .card a.title:hover{text-decoration:underline}
-.empty{color:var(--muted);font-size:14px;padding:6px 2px}
-.card .sum{white-space:pre-line;font-size:13.5px;margin-top:6px;padding:8px 10px;background:var(--bg);border-radius:8px;line-height:1.5}
-.card .sumd{border:0;padding:0;background:none;margin-top:4px}
-.card .body{border:0;padding:0;background:none;margin-top:2px}
-.card .body>summary{font-size:13px;color:var(--accent);font-weight:600}
-.card .body[open]>summary{color:var(--muted);font-weight:400}
-.card .sumd summary{font-size:13px;color:var(--accent)}
-.card .sumd div{white-space:pre-line;font-size:13.5px;margin-top:6px;line-height:1.55}
+.facts{display:flex;flex-wrap:wrap;gap:4px 6px}
+.facts span{font-size:12px;color:var(--ink);background:var(--bg);border-radius:6px;padding:2px 8px}
 
-.danji{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:var(--panel)}
-.danji:hover{background:var(--bg)}
-.danji .dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #333}
-.danji .dot.watch{border-color:var(--watch);border-width:3px}
-.danji .dot.hot{border-color:var(--new);border-width:3px}
-.danji .name{font-weight:600;flex:1;min-width:0;word-break:keep-all}
-.danji .name small{display:block;font-weight:400;color:var(--muted);font-size:12px}
-.danji .num{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.danji .num b{display:block;color:var(--ink);font-size:14px}
-
-.cal{display:flex;flex-direction:column;gap:8px}
-.cal .mon{border:1px solid var(--line);border-radius:10px;padding:8px 12px}
-.cal .mon.now{border-color:var(--accent);background:var(--accent-soft)}
-.cal .mh{font-weight:700;font-size:13px;margin-bottom:4px}
-.cal ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
-.cal li{font-size:13.5px} .cal li small{display:block;color:var(--muted);font-size:12px} .cal li.none{color:var(--muted);font-size:13px}
-details{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel)}
+details{border:0;border-radius:12px;padding:12px 14px;background:var(--panel);box-shadow:var(--shadow)}
 details summary{cursor:pointer;font-weight:700;font-size:14px}
 details p,details li{font-size:14px}
 details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
+.card details{box-shadow:none;border-radius:0;padding:0;background:none}
+.card .body{margin-top:2px}
+.card .body>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--accent);padding:7px 10px;border-radius:8px;background:var(--accent-soft)}
+.card .body>summary::-webkit-details-marker{display:none}
+.card .body>summary::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 4px 0 0;transition:transform .15s}
+.card .body[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
+.kv{margin:10px 0 0;display:grid;grid-template-columns:62px 1fr;gap:7px 10px;font-size:13.5px;line-height:1.5}
+.kv dt{color:var(--muted);font-size:12px;font-weight:600;padding-top:2px} .kv dd{margin:0;word-break:keep-all} .kv dd.full{grid-column:1/-1}
+.card .prep{font-size:13px;margin-top:10px;line-height:1.5;padding-top:10px;border-top:1px solid var(--line)} .card .prep b{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.card .danji-tbl{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;overflow-x:auto} .card .danji-tbl b{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+.card .danji-tbl table{border-collapse:collapse;width:100%} .card .danji-tbl th,.card .danji-tbl td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;white-space:nowrap}
+.card .danji-tbl th{color:var(--muted);font-weight:600;font-size:11.5px} .card .danji-tbl tr:last-child td{border-bottom:0}
+.card .sumd{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.card .sumd summary{font-size:13px;font-weight:600;color:var(--accent)}
+.card .sumd div{white-space:pre-line;font-size:13.5px;margin-top:6px;line-height:1.6}
+.card .ask{align-self:flex-start;margin-top:2px;font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
+.card .ask:hover{background:#d3e7de} .card .ask:disabled{opacity:.6;cursor:default}
+.hidwrap{list-style:none} .hid{padding:10px 14px;box-shadow:none;background:transparent;border:1px dashed var(--line)} .hid>summary{font-size:13px;color:var(--muted);font-weight:600} .hid .list{margin-top:10px}
+
+.danji{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;cursor:pointer;background:var(--panel);box-shadow:var(--shadow);transition:transform .12s}
+.danji:hover{transform:translateY(-1px)}
+.danji .rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid transparent}
+.danji .rank.watch{border-color:var(--watch)} .danji .rank.hot{border-color:var(--new)}
+.danji .name{font-weight:650;min-width:0;word-break:keep-all;line-height:1.4}
+.danji .name small{display:block;font-weight:400;color:var(--muted);font-size:12px;line-height:1.45}
+.danji .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.danji .num b{display:block;font-size:13px;color:var(--accent)} .danji .num i{font-style:normal;font-size:11.5px;color:var(--muted)}
+
+.tl{display:flex;flex-direction:column}
+.tm{display:grid;grid-template-columns:52px 1fr;gap:0 12px}
+.tm .tmh{text-align:right;padding-top:9px;line-height:1.2} .tm .tmh b{font-size:14px} .tm .tmh small{display:block;color:var(--muted);font-size:11px}
+.tm ul{list-style:none;margin:0;padding:8px 0 14px 16px;border-left:2px solid var(--line);position:relative;display:flex;flex-direction:column;gap:6px}
+.tm ul::before{content:"";position:absolute;left:-6px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--panel);border:2px solid #b8c2bf}
+.tm.now ul::before{background:var(--accent);border-color:var(--accent)} .tm.now .tmh b{color:var(--accent)}
+.tm li{background:var(--panel);border-radius:10px;padding:9px 12px;box-shadow:var(--shadow);font-size:13.5px;font-weight:600;line-height:1.4}
+.tm li small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:1px}
+.tm li.none{background:none;box-shadow:none;padding:4px 0;color:var(--muted);font-weight:400;font-size:12.5px}
+.tm.now li{background:var(--accent-soft)}
+.steps{list-style:none;counter-reset:s;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li{counter-increment:s;display:flex;gap:8px;align-items:baseline;font-size:13.5px}
+.steps li::before{content:counter(s);flex:none;width:18px;height:18px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.how{display:flex;flex-direction:column;gap:8px}
 .foot{color:var(--muted);font-size:12px;line-height:1.5}
 
 .legend{position:absolute;bottom:14px;left:14px;background:rgba(255,255,255,.95);padding:8px 10px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.25);font-size:12px;line-height:1.6;z-index:1000}
@@ -120,16 +145,21 @@ details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;g
 
 <div class="layout">
   <div class="panel" id="panel">
-    <section>
-      <h2>새로 뜬 공고 <span class="cnt">0</span></h2>
-      <ul class="list"><li class="empty">오늘 새로 뜬 공고가 없습니다</li></ul>
-    </section>
-    <section>
-      <h2>접수 중 <span class="cnt">2</span></h2>
-      <ul class="list"><li class="card ok"><div class="meta"><span class="tag ok">신청 가능</span> <span class="tag">SH 매입임대</span> <span class="tag dl">마감 09/30 D-12 (본문에서 추정)</span></div><a class="title" href="https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=310107&amp;multi_itm_seq=2" target="_blank">(수정) 2026년 2차 장기미임대 매입임대주택 입주자모집공고(2026. 8. 28.)</a><details class="body"><summary>판정과 준비물 보기</summary><div class="sum">- 해당 여부: 가능. 신청자는 만19세 이상 무주택 서울 주민등록자로 1인가구 소득기준(월 5,720,045원, 130%) 대비 월 208만원이므로 1순위 해당. 이 공고에는 자산·자동차 기준이 없어 해당 조건은 결격사유 아님.
-- 대상 지역: 은평구(구산동, 명칭없음 단지 304호) 존재. 서대문구·의왕시는 목록에 없음(공고는 서울 지역만 대상이며 의왕시는 공고문에 없음).
-- 접수: 2026.9.28.(월) 10:00 ~ 9.30.(수) 17:00, 인터넷청약(www.i-sh.co.kr/app). 고령자 아니므로 우편접수 불가.
-- 지금 할 일: 공동인증서(또는 간편인증) 준비 후 9.28~9.30 인터넷청약시스템에서 은평구 단지 1개 지정 신청.</div><div class="danji-tbl"><b>관심 지역 단지</b><table><thead><tr><th>구</th><th>단지</th><th>면적</th><th>세대</th><th>보증금</th><th>월세</th></tr></thead><tbody><tr><td>은평구</td><td>명칭없음(구산동)</td><td>26.51</td><td>1</td><td>13,740,000</td><td>179,000</td></tr></tbody></table></div><div class="prep"><b>준비물</b> 공동인증서(또는 금융인증서·간편인증서), 주민등록등본, 가족관계증명서, 청약통장 관련서류(참고용), 개인정보 수집·이용 동의서</div><details class="sumd"><summary>공고문 전체 요약 보기</summary><div>1. 신청 자격과 순위
+    <nav class="ptabs" id="ptabs">
+      <button data-t="notice" class="on">공고<span>2</span></button>
+      <button data-t="danji">단지<span>12</span></button>
+      <button data-t="cal">일정</button>
+      <button data-t="how">신청 방법</button>
+    </nav>
+
+    <div class="pane" data-pane="notice">
+      <section>
+        <h2>새로 뜬 공고 <span class="cnt">0</span></h2>
+        <ul class="list"><li class="empty">오늘 새로 뜬 공고가 없습니다</li></ul>
+      </section>
+      <section>
+        <h2>접수 중 <span class="cnt">2</span></h2>
+        <ul class="list"><li class="card ok"><div class="top"><span class="vd ok">신청 가능</span><span class="src">SH 매입임대</span><span class="dday ">D-12</span></div><a class="title" href="https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=310107&amp;multi_itm_seq=2" target="_blank">(수정) 2026년 2차 장기미임대 매입임대주택 입주자모집공고(2026. 8. 28.)</a><div class="facts"><span>접수 9/28(월) ~ 9/30(수)</span><span>인터넷 청약</span><span>관심 지역 단지 1곳</span></div><details class="body"><summary>판정과 준비물 보기</summary><dl class="kv"><dt>해당 여부</dt><dd>가능. 신청자는 만19세 이상 무주택 서울 주민등록자로 1인가구 소득기준(월 5,720,045원, 130%) 대비 월 208만원이므로 1순위 해당. 이 공고에는 자산·자동차 기준이 없어 해당 조건은 결격사유 아님.</dd><dt>대상 지역</dt><dd>은평구(구산동, 명칭없음 단지 304호) 존재. 서대문구·의왕시는 목록에 없음(공고는 서울 지역만 대상이며 의왕시는 공고문에 없음).</dd><dt>접수</dt><dd>2026.9.28.(월) 10:00 ~ 9.30.(수) 17:00, 인터넷청약(www.i-sh.co.kr/app). 고령자 아니므로 우편접수 불가.</dd><dt>지금 할 일</dt><dd>공동인증서(또는 간편인증) 준비 후 9.28~9.30 인터넷청약시스템에서 은평구 단지 1개 지정 신청.</dd></dl><div class="danji-tbl"><b>관심 지역 단지</b><table><thead><tr><th>구</th><th>단지</th><th>면적</th><th>세대</th><th>보증금</th><th>월세</th></tr></thead><tbody><tr><td>은평구</td><td>명칭없음(구산동)</td><td>26.51</td><td>1</td><td>13,740,000</td><td>179,000</td></tr></tbody></table></div><div class="prep"><b>준비물</b>공동인증서(또는 금융인증서·간편인증서), 주민등록등본, 가족관계증명서, 청약통장 관련서류(참고용), 개인정보 수집·이용 동의서</div><details class="sumd"><summary>공고문 전체 요약 보기</summary><div>1. 신청 자격과 순위
 공고일(2026.8.28) 기준 서울시 주민등록 등재된 무주택 성년자로 신청자는 자격요건 충족. 1인가구 도시근로자 월평균소득 130% 기준은 5,720,045원. 신청자 월소득 약 208만원으로 이 기준 이하이므로 1순위(도시근로자 가구당 월평균소득 130% 이하) 해당.
 
 2. 자산과 자동차 기준 금액
@@ -159,10 +189,7 @@ details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;g
 장기미임대 매입임대주택 서류제출신청서, 개인정보 수집·이용 및 제3자제공 동의서(세대구성원 전원), 신청자 주민등록등본(모든 세대원 뒷자리 표기), 가족관계증명서(상세), 외국인등록사실증명서(해당자만), 임신진단서(해당자만), 장애인증명서(저층신청 해당자만) - 신청자는 65세 미만·비장애로 저층우선배정 해당 없음.
 
 7. 주의사항
-1세대 1주택단지만 신청 가능, 중복신청 시 전부 무효. 신청 후 수정 불가. 동·호는 무작위 전산배정, 변경·교환 불가. 최초계약 2년, 재계약 1회(최장 6년), 무주택자격 유지 필요. 양도·전대 금지. 관리비(승강기·기계식주차 등) 추가 발생 가능하므로 계약 전 확인 필요.</div><p class="foot">Claude가 공고문을 읽고 정리한 내용입니다. 접수 전 공고문 원문을 한 번 더 확인하세요.</p></details></details></li><li class="card cond"><div class="meta"><span class="tag cond">조건 확인 필요</span> <span class="tag">SH 매입임대</span> <span class="tag dl">마감 09/18 D-0 (본문에서 추정)</span></div><a class="title" href="https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=309303&amp;multi_itm_seq=2" target="_blank">2026년 하반기 일반 매입임대주택(다가구, 원룸) 입주대기자 모집공고(2026.08.27.)</a><details class="body"><summary>판정과 준비물 보기</summary><div class="sum">- 해당 여부: 조건부 가능 - 은평구 주민등록이며 2순위(가구원수별 가구당 월평균소득 50%이하) 소득기준 충족, 청약저축 24회 이상 납입으로 동일순위 경합시 가점 있음. 단 의왕시는 사업대상지역 아니고 서대문구는 거주지가 아니므로 신청 불가(공고일 현재 주민등록 등재된 자치구만 신청 가능)
-- 대상 지역: 은평구는 사업대상지역(자치구)에 미포함되어 신청 불가. 서대문구·의왕시도 신청 불가(신청자 주민등록지 은평구가 모집대상 자치구 목록에 없음). 공고문 없음
-- 접수: 1순위 2026.09.14.(월)~2026.09.16.(수), 미달시 2순위 2026.09.17.(목)~2026.09.18.(금), 방법은 방문 접수, 장소는 주민등록등재 거주지 동 주민센터
-- 지금 할 일: 공고문에 없음(은평구는 모집대상 자치구가 아니므로 본 공고 신청 불가)</div><div class="prep"><b>준비물</b> 매입임대주택 공급신청서, 개인정보수집이용 및 제3자 제공동의서, 주민등록등본, 주민등록초본, 가족관계증명서, 청약저축(주택청약종합저축) 납입인정회차 증명서, 금융정보 등 제공동의서, 자산보유사실확인서, 신분증, 도장</div><details class="sumd"><summary>공고문 전체 요약 보기</summary><div>1. 신청 자격과 순위
+1세대 1주택단지만 신청 가능, 중복신청 시 전부 무효. 신청 후 수정 불가. 동·호는 무작위 전산배정, 변경·교환 불가. 최초계약 2년, 재계약 1회(최장 6년), 무주택자격 유지 필요. 양도·전대 금지. 관리비(승강기·기계식주차 등) 추가 발생 가능하므로 계약 전 확인 필요.</div><p class="foot">Claude가 공고문을 읽고 정리한 내용입니다. 접수 전 공고문 원문을 한 번 더 확인하세요.</p></details></details></li><li class="card cond"><div class="top"><span class="vd cond">조건 확인 필요</span><span class="src">SH 매입임대</span><span class="dday hot">오늘 마감</span></div><a class="title" href="https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=309303&amp;multi_itm_seq=2" target="_blank">2026년 하반기 일반 매입임대주택(다가구, 원룸) 입주대기자 모집공고(2026.08.27.)</a><div class="facts"><span>접수 9/14(월) ~ 9/16(수)</span><span>방문 접수</span><span>관심 지역 단지 없음</span></div><details class="body"><summary>판정과 준비물 보기</summary><dl class="kv"><dt>해당 여부</dt><dd>조건부 가능 - 은평구 주민등록이며 2순위(가구원수별 가구당 월평균소득 50%이하) 소득기준 충족, 청약저축 24회 이상 납입으로 동일순위 경합시 가점 있음. 단 의왕시는 사업대상지역 아니고 서대문구는 거주지가 아니므로 신청 불가(공고일 현재 주민등록 등재된 자치구만 신청 가능)</dd><dt>대상 지역</dt><dd>은평구는 사업대상지역(자치구)에 미포함되어 신청 불가. 서대문구·의왕시도 신청 불가(신청자 주민등록지 은평구가 모집대상 자치구 목록에 없음). 공고문 없음</dd><dt>접수</dt><dd>1순위 2026.09.14.(월)~2026.09.16.(수), 미달시 2순위 2026.09.17.(목)~2026.09.18.(금), 방법은 방문 접수, 장소는 주민등록등재 거주지 동 주민센터</dd><dt>지금 할 일</dt><dd>공고문에 없음(은평구는 모집대상 자치구가 아니므로 본 공고 신청 불가)</dd></dl><div class="prep"><b>준비물</b>매입임대주택 공급신청서, 개인정보수집이용 및 제3자 제공동의서, 주민등록등본, 주민등록초본, 가족관계증명서, 청약저축(주택청약종합저축) 납입인정회차 증명서, 금융정보 등 제공동의서, 자산보유사실확인서, 신분증, 도장</div><details class="sumd"><summary>공고문 전체 요약 보기</summary><div>1. 신청 자격과 순위
 공고문상 사업대상지역(자치구)은 강북구, 도봉구, 동대문구, 마포구, 서대문구, 서초구, 성북구, 송파구, 양천구, 중랑구 10개 구입니다. 신청자의 주민등록은 서울 은평구로, 이는 사업대상지역에 포함되지 않아 원칙적으로 신청 자격이 없습니다(모집대상 자치구 거주자만 신청 가능). 참고로 자격요건만 놓고 보면 1인가구 월평균소득 기준 50%이하는 2,669,354원 이하이며 신청자 월소득 약 208만원은 이에 해당해 2순위 요건은 충족합니다. 그러나 거주지 요건 미충족으로 신청 불가합니다.
 
 2. 자산과 자동차 기준 금액
@@ -182,44 +209,60 @@ details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;g
 
 7. 주의사항
 1세대 1주택 신청 원칙이며 중복신청 시 전부 무효 처리됩니다. 신청 접수 후 주택유형(다가구/원룸) 변경은 불가합니다. 신청 자격은 모집공고일부터 입주 시까지 계속 유지되어야 하며, 공고일 이후 신청 자치구 외 지역으로 전출 시 공급이 불가합니다. 무엇보다 신청자의 은평구는 이번 공고의 모집대상 자치구에 포함되지 않아 신청 자체가 불가함에 유의해야 합니다.</div><p class="foot">Claude가 공고문을 읽고 정리한 내용입니다. 접수 전 공고문 원문을 한 번 더 확인하세요.</p></details></details></li></ul>
-    </section>
-    <section>
-      <h2>참고: 자리 잘 나는 단지 <span class="cnt">12</span></h2>
-      <ul class="list"><li class="danji" data-name="구파발10-3단지(은평3-5,임대)" data-type="장기전세"><span class="dot " style="background:#2e8b57"></span><span class="name">구파발10-3단지(은평3-5,임대)<small>은평 / 장기전세 / SH공사</small><small>2012년 준공 (14년차), 혼합식, 승강기 있음</small><small>보증금 13,665만~45,006만원 (60~85㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 22건</span></li><li class="danji" data-name="독립문극동(현저4)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">독립문극동(현저4)<small>서대문 / 50년임대 / SH공사</small><small>1998년 준공 (28년차), 복도식, 승강기 있음</small><small>보증금 885만원, 월 13.1만원 (27㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 19건</span></li><li class="danji" data-name="홍제원현대(홍제3)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">홍제원현대(홍제3)<small>서대문 / 50년임대 / SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 986만원, 월 14.2만원 (33㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 16건</span></li><li class="danji" data-name="홍은벽산(홍은5-3)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">홍은벽산(홍은5-3)<small>서대문 / 50년임대 / SH공사</small><small>1997년 준공 (29년차), 복도식, 승강기 있음</small><small>보증금 796만원, 월 10.2만원 (30㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 12건</span></li><li class="danji" data-name="은평뉴타운 폭포동" data-type="장기전세"><span class="dot " style="background:#2e8b57"></span><span class="name">은평뉴타운 폭포동<small>은평 / 장기전세 / SH공사</small><small>2010년 준공 (16년차), 계단식, 승강기 있음</small><small>보증금 31,850만~41,262만원 (85㎡)</small></span><span class="num"><b>대기 1명</b>1년 퇴거 12건</span></li><li class="danji" data-name="인왕산현대(홍제4)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">인왕산현대(홍제4)<small>서대문 / 50년임대 / SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 1,124만원, 월 15.1만원 (33㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 11건</span></li><li class="danji" data-name="DMC래미안e편한세상(가재울뉴타운3)" data-type="50년임대"><span class="dot watch" style="background:#2e8b57"></span><span class="name">DMC래미안e편한세상(가재울뉴타운3)<small>서대문 / 50년임대 / SH공사</small><small>2012년 준공 (14년차), 복도식, 승강기 있음</small><small>보증금 3,052만~3,596만원, 월 19.6만~23.1만원 (40~48㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 10건</span></li><li class="danji" data-name="백련산힐스테이트2차(응암8)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">백련산힐스테이트2차(응암8)<small>은평 / 50년임대 / SH공사</small><small>2011년 준공 (15년차), 복도식, 승강기 있음</small><small>보증금 2,326만~2,416만원, 월 15.3만~15.9만원 (31~32㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 9건</span></li><li class="danji" data-name="DMC파크뷰자이(가재울4)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">DMC파크뷰자이(가재울4)<small>서대문 / 50년임대 / SH공사</small><small>2015년 준공 (11년차), 복도식, 승강기 있음</small><small>보증금 3,236만~5,179만원, 월 18.1만~28.9만원 (40~60㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 8건</span></li><li class="danji" data-name="상림마을8-2단지(은평1-1,임대)" data-type="국민임대"><span class="dot " style="background:#2e8b57"></span><span class="name">상림마을8-2단지(은평1-1,임대)<small>은평 / 국민임대 / SH공사</small><small>2008년 준공 (18년차), 복도식, 승강기 있음</small><small>보증금 2,984만~6,593만원, 월 21.9만~40.6만원 (40~60㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 7건</span></li><li class="danji" data-name="구파발10-2단지(은평3-4,임대)" data-type="장기전세"><span class="dot " style="background:#2e8b57"></span><span class="name">구파발10-2단지(은평3-4,임대)<small>은평 / 장기전세 / SH공사</small><small>2010년 준공 (16년차), 계단식, 승강기 있음</small><small>보증금 14,729만~45,006만원 (60~85㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 7건</span></li><li class="danji" data-name="홍제유원(홍제1)" data-type="50년임대"><span class="dot " style="background:#2e8b57"></span><span class="name">홍제유원(홍제1)<small>서대문 / 50년임대 / SH공사</small><small>1997년 준공 (29년차), 복도식, 승강기 있음</small><small>보증금 580만원, 월 7.8만원 (29㎡)</small></span><span class="num"><b>대기 0명</b>1년 퇴거 6건</span></li></ul>
-      <p class="foot" style="margin:8px 0 0">공고와는 별개인 참고 정보입니다. 대기자가 적고 최근 1년 퇴거가 많은 순이라, 이 단지들의 공고가 뜨면 우선 노려볼 만합니다. 누르면 지도에서 위치와 신청처가 열립니다.</p>
-    </section>
-    <section>
-      <h2>앞으로 나올 공고 (예상)</h2>
-      <div class="cal"><div class="mon now"><div class="mh">2026년 9월</div><ul><li><b>SH 장기전세 (수시, 연 3~4회)</b><small>SH 인터넷청약, 청약통장 필요</small></li></ul></div><div class="mon"><div class="mh">2026년 10월</div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="mon"><div class="mh">2026년 11월</div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="mon"><div class="mh">2026년 12월</div><ul><li><b>SH 장기전세 (수시, 연 3~4회)</b><small>SH 인터넷청약, 청약통장 필요</small></li></ul></div><div class="mon"><div class="mh">2027년 1월</div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="mon"><div class="mh">2027년 2월</div><ul><li><b>SH 일반 매입임대 입주대기자 모집</b><small>동 주민센터 방문 접수, 서대문구 포함 여부는 공고마다 다름</small></li><li><b>SH 장기미임대 매입임대 입주자 모집</b><small>SH 인터넷청약</small></li></ul></div><div class="mon"><div class="mh">비정기</div><ul><li><b>SH 50년임대 예비입주자 모집 (비정기)</b><small>대기자가 소진되면 공고, 서대문 단지 다수 해당</small></li></ul></div></div>
-      <p class="foot" style="margin:8px 0 0">지난 공고 주기로 짐작한 일정이라 실제와 다를 수 있습니다. 미리 인증서와 서류를 준비해두는 용도입니다.</p>
-    </section>
-    <section>
-      <h2>신청 방법</h2>
-      <details open>
-        <summary>공통 흐름</summary>
-        <p style="margin:8px 0 0">공고 확인 → 접수 기간에 청약 → 서류심사 대상자 발표 → 서류 제출 → 당첨 또는 예비번호 → 빈집이 나오면 순번대로 계약. 소득과 자산은 "정보 조회 동의"로 기관이 조회하고, 직접 내는 서류는 보통 주민등록등본, 초본, 청약통장 확인서입니다.</p>
-      </details>
-      <details style="margin-top:8px">
-        <summary>SH (서울)</summary>
-        <ul>
-          <li>인터넷 청약 공고: <a href="https://www.i-sh.co.kr/app" target="_blank">SH 인터넷청약시스템</a> 로그인(공동인증서 필수) → 청약신청 → 공고 선택 → 단지, 평형 선택 → 접수. 접수 기간이 아니면 목록이 비어 있습니다.</li>
-          <li>방문 접수 공고(일반 매입임대 등): 어머니 주소지 동 주민센터에 신분증, 도장을 들고 방문. 신청서와 동의서는 창구에 있습니다.</li>
-          <li>서류는 며칠 뒤 공고 게시판에 "서류심사 대상자 발표"가 뜨면 그때 냅니다.</li>
-        </ul>
-      </details>
-      <details style="margin-top:8px">
-        <summary>LH</summary>
-        <ul>
-          <li><a href="https://apply.lh.or.kr" target="_blank">LH 청약플러스</a> 로그인 → 청약 → 임대주택 → 공고의 청약신청 → 유형, 단지, 주택형 선택 → 접수.</li>
-          <li>공고문에 "현장접수"라고 적힌 매입임대, 전세임대는 주거복지지사에 직접 방문합니다.</li>
-        </ul>
-      </details>
-      <details style="margin-top:8px">
-        <summary>GH (경기, 의왕)</summary>
-        <ul><li><a href="https://apply.gh.or.kr" target="_blank">GH 청약센터</a> 로그인 → 임대주택 청약공고 → 공고 선택 → 신청.</li></ul>
-      </details>
-    </section>
-    <p class="foot">출처: LH 청약플러스, SH 공고 게시판, GH 청약센터, 마이홈포털 예비입주자 대기현황. 매일 저녁 8시 갱신.</p>
+      </section>
+      <p class="foot">공고 카드의 "공고문 요약 요청"을 누르면 15분 안에 어머니 기준 판정과 준비물이 올라옵니다.</p>
+    </div>
+
+    <div class="pane" data-pane="danji" hidden>
+      <section>
+        <h2>자리 잘 나는 단지 <span class="cnt">12</span></h2>
+        <ul class="list"><li class="danji" data-name="구파발10-3단지(은평3-5,임대)" data-type="장기전세"><span class="rank " style="background:#2e8b57">1</span><span class="name">구파발10-3단지(은평3-5,임대)<small>은평, 장기전세, SH공사</small><small>2012년 준공 (14년차), 혼합식, 승강기 있음</small><small>보증금 13,665만~45,006만원 (60~85㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 22건</i></span></li><li class="danji" data-name="독립문극동(현저4)" data-type="50년임대"><span class="rank " style="background:#2e8b57">2</span><span class="name">독립문극동(현저4)<small>서대문, 50년임대, SH공사</small><small>1998년 준공 (28년차), 복도식, 승강기 있음</small><small>보증금 885만원, 월 13.1만원 (27㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 19건</i></span></li><li class="danji" data-name="홍제원현대(홍제3)" data-type="50년임대"><span class="rank " style="background:#2e8b57">3</span><span class="name">홍제원현대(홍제3)<small>서대문, 50년임대, SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 986만원, 월 14.2만원 (33㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 16건</i></span></li><li class="danji" data-name="홍은벽산(홍은5-3)" data-type="50년임대"><span class="rank " style="background:#2e8b57">4</span><span class="name">홍은벽산(홍은5-3)<small>서대문, 50년임대, SH공사</small><small>1997년 준공 (29년차), 복도식, 승강기 있음</small><small>보증금 796만원, 월 10.2만원 (30㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 12건</i></span></li><li class="danji" data-name="은평뉴타운 폭포동" data-type="장기전세"><span class="rank " style="background:#2e8b57">5</span><span class="name">은평뉴타운 폭포동<small>은평, 장기전세, SH공사</small><small>2010년 준공 (16년차), 계단식, 승강기 있음</small><small>보증금 31,850만~41,262만원 (85㎡)</small></span><span class="num"><b>대기 1명</b><i>1년 퇴거 12건</i></span></li><li class="danji" data-name="인왕산현대(홍제4)" data-type="50년임대"><span class="rank " style="background:#2e8b57">6</span><span class="name">인왕산현대(홍제4)<small>서대문, 50년임대, SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 1,124만원, 월 15.1만원 (33㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 11건</i></span></li><li class="danji" data-name="DMC래미안e편한세상(가재울뉴타운3)" data-type="50년임대"><span class="rank watch" style="background:#2e8b57">7</span><span class="name">DMC래미안e편한세상(가재울뉴타운3)<small>서대문, 50년임대, SH공사</small><small>2012년 준공 (14년차), 복도식, 승강기 있음</small><small>보증금 3,052만~3,596만원, 월 19.6만~23.1만원 (40~48㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 10건</i></span></li><li class="danji" data-name="백련산힐스테이트2차(응암8)" data-type="50년임대"><span class="rank " style="background:#2e8b57">8</span><span class="name">백련산힐스테이트2차(응암8)<small>은평, 50년임대, SH공사</small><small>2011년 준공 (15년차), 복도식, 승강기 있음</small><small>보증금 2,326만~2,416만원, 월 15.3만~15.9만원 (31~32㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 9건</i></span></li><li class="danji" data-name="DMC파크뷰자이(가재울4)" data-type="50년임대"><span class="rank " style="background:#2e8b57">9</span><span class="name">DMC파크뷰자이(가재울4)<small>서대문, 50년임대, SH공사</small><small>2015년 준공 (11년차), 복도식, 승강기 있음</small><small>보증금 3,236만~5,179만원, 월 18.1만~28.9만원 (40~60㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 8건</i></span></li><li class="danji" data-name="상림마을8-2단지(은평1-1,임대)" data-type="국민임대"><span class="rank " style="background:#2e8b57">10</span><span class="name">상림마을8-2단지(은평1-1,임대)<small>은평, 국민임대, SH공사</small><small>2008년 준공 (18년차), 복도식, 승강기 있음</small><small>보증금 2,984만~6,593만원, 월 21.9만~40.6만원 (40~60㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 7건</i></span></li><li class="danji" data-name="구파발10-2단지(은평3-4,임대)" data-type="장기전세"><span class="rank " style="background:#2e8b57">11</span><span class="name">구파발10-2단지(은평3-4,임대)<small>은평, 장기전세, SH공사</small><small>2010년 준공 (16년차), 계단식, 승강기 있음</small><small>보증금 14,729만~45,006만원 (60~85㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 7건</i></span></li><li class="danji" data-name="홍제유원(홍제1)" data-type="50년임대"><span class="rank " style="background:#2e8b57">12</span><span class="name">홍제유원(홍제1)<small>서대문, 50년임대, SH공사</small><small>1997년 준공 (29년차), 복도식, 승강기 있음</small><small>보증금 580만원, 월 7.8만원 (29㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 6건</i></span></li></ul>
+        <p class="foot" style="margin:10px 0 0">공고와는 별개인 참고 정보입니다. 대기자가 적고 최근 1년 퇴거가 많은 순이라, 이 단지들의 공고가 뜨면 우선 노려볼 만합니다. 누르면 지도에서 위치와 신청처가 열립니다.</p>
+      </section>
+    </div>
+
+    <div class="pane" data-pane="cal" hidden>
+      <section>
+        <h2>앞으로 나올 공고 예상</h2>
+        <div class="tl"><div class="tm now"><div class="tmh"><b>9월</b><small>이번 달</small></div><ul><li>SH 장기전세 (수시, 연 3~4회)<small>SH 인터넷청약, 청약통장 필요</small></li></ul></div><div class="tm"><div class="tmh"><b>10월</b><small>2026</small></div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="tm"><div class="tmh"><b>11월</b><small>2026</small></div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="tm"><div class="tmh"><b>12월</b><small>2026</small></div><ul><li>SH 장기전세 (수시, 연 3~4회)<small>SH 인터넷청약, 청약통장 필요</small></li></ul></div><div class="tm"><div class="tmh"><b>1월</b><small>2027</small></div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="tm"><div class="tmh"><b>2월</b><small>2027</small></div><ul><li>SH 일반 매입임대 입주대기자 모집<small>동 주민센터 방문 접수, 서대문구 포함 여부는 공고마다 다름</small></li><li>SH 장기미임대 매입임대 입주자 모집<small>SH 인터넷청약</small></li></ul></div><div class="tm"><div class="tmh"><b>수시</b><small>비정기</small></div><ul><li>SH 50년임대 예비입주자 모집 (비정기)<small>대기자가 소진되면 공고, 서대문 단지 다수 해당</small></li></ul></div></div>
+        <p class="foot" style="margin:6px 0 0">지난 공고 주기로 짐작한 일정이라 실제와 다를 수 있습니다. 미리 인증서와 서류를 준비해두는 용도입니다.</p>
+      </section>
+    </div>
+
+    <div class="pane" data-pane="how" hidden>
+      <section>
+        <h2>신청 방법</h2>
+        <div class="how">
+        <details open>
+          <summary>공통 흐름</summary>
+          <ol class="steps">
+            <li>공고 확인</li><li>접수 기간에 청약</li><li>서류심사 대상자 발표</li><li>서류 제출</li><li>당첨 또는 예비번호</li><li>빈집이 나오면 순번대로 계약</li>
+          </ol>
+          <p style="margin:10px 0 0;color:var(--muted);font-size:13px">소득과 자산은 "정보 조회 동의"로 기관이 조회하고, 직접 내는 서류는 보통 주민등록등본, 초본, 청약통장 확인서입니다.</p>
+        </details>
+        <details>
+          <summary>SH (서울)</summary>
+          <ul>
+            <li>인터넷 청약 공고: <a href="https://www.i-sh.co.kr/app" target="_blank">SH 인터넷청약시스템</a> 로그인(공동인증서 필수) → 청약신청 → 공고 선택 → 단지, 평형 선택 → 접수. 접수 기간이 아니면 목록이 비어 있습니다.</li>
+            <li>방문 접수 공고(일반 매입임대 등): 어머니 주소지 동 주민센터에 신분증, 도장을 들고 방문. 신청서와 동의서는 창구에 있습니다.</li>
+            <li>서류는 며칠 뒤 공고 게시판에 "서류심사 대상자 발표"가 뜨면 그때 냅니다.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>LH</summary>
+          <ul>
+            <li><a href="https://apply.lh.or.kr" target="_blank">LH 청약플러스</a> 로그인 → 청약 → 임대주택 → 공고의 청약신청 → 유형, 단지, 주택형 선택 → 접수.</li>
+            <li>공고문에 "현장접수"라고 적힌 매입임대, 전세임대는 주거복지지사에 직접 방문합니다.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>GH (경기, 의왕)</summary>
+          <ul><li><a href="https://apply.gh.or.kr" target="_blank">GH 청약센터</a> 로그인 → 임대주택 청약공고 → 공고 선택 → 신청.</li></ul>
+        </details>
+        </div>
+      </section>
+    </div>
+    <p class="foot" style="margin-top:22px">출처: LH 청약플러스, SH 공고 게시판, GH 청약센터, 마이홈포털 예비입주자 대기현황. 매일 저녁 8시 갱신.</p>
   </div>
 
   <div class="mapwrap" id="mapwrap">
@@ -261,6 +304,15 @@ document.querySelectorAll('.ask').forEach(b=>{
     }catch(e){b.disabled=false;b.textContent='요청 실패, 다시 눌러주세요';}
   });
 });
+const ptabs=document.querySelectorAll('#ptabs button');
+function pane(t){
+  ptabs.forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=(p.dataset.pane!==t));
+  document.getElementById('panel').scrollTop=0;
+  try{localStorage.setItem('pane',t)}catch(e){}
+}
+ptabs.forEach(b=>b.addEventListener('click',()=>pane(b.dataset.t)));
+try{const last=localStorage.getItem('pane'); if(last&&document.querySelector('.pane[data-pane="'+last+'"]')) pane(last);}catch(e){}
 const map=L.map('map',{zoomControl:true});
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
 const g=L.featureGroup(); const byKey={};
