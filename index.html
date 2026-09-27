@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>임대주택 알림 09/27</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%A0%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --bg:#f3f5f4;--panel:#ffffff;--ink:#1c2826;--muted:#617270;--line:#dbe3e0;
+  --accent:#1f6b5a;--accent-soft:#e2efe9;--new:#c0392b;--new-soft:#fbe9e6;--warn:#8a5a00;--warn-soft:#fbf1dc;--watch:#1f4fd1;
+  --header:56px;--tabs:52px;
+  --shadow:0 1px 2px rgba(16,40,34,.07),0 2px 10px rgba(16,40,34,.05);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+
+header{height:var(--header);display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+header h1{font-size:17px;margin:0;font-weight:700;white-space:nowrap}
+header .date{color:var(--muted);font-size:13px;white-space:nowrap}
+.chips{display:flex;gap:6px;margin-left:auto}
+.chip{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:700;white-space:nowrap}
+.chip.new{background:var(--new-soft);color:var(--new)}
+
+.layout{display:grid;grid-template-columns:420px 1fr;height:calc(100vh - var(--header))}
+.panel{overflow-y:auto;background:var(--bg);border-right:1px solid var(--line);padding:0 14px 40px;display:flex;flex-direction:column}
+.mapwrap{position:relative}
+#map{position:absolute;inset:0}
+
+.ptabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg);padding:12px 0 10px;margin-bottom:4px}
+.ptabs button{border:0;background:transparent;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 4px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.ptabs button span{font-size:11px;background:var(--line);color:var(--ink);border-radius:999px;padding:0 6px;line-height:17px;font-variant-numeric:tabular-nums}
+.ptabs button:hover{color:var(--ink)}
+.ptabs button.on{background:var(--panel);color:var(--accent);box-shadow:var(--shadow)}
+.ptabs button.on span{background:var(--accent);color:#fff}
+.pane{display:flex;flex-direction:column;gap:22px}
+.pane[hidden]{display:none}
+
+section h2{font-size:15px;margin:0 0 10px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+section h2 .cnt{font-size:12px;background:var(--line);border-radius:999px;padding:1px 8px;color:var(--ink);font-variant-numeric:tabular-nums}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.empty{color:var(--muted);font-size:13.5px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+
+.card{position:relative;overflow:hidden;border-radius:12px;padding:12px 14px 12px 18px;background:var(--panel);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--line)}
+.card.ok::before{background:var(--accent)} .card.cond::before{background:#c98a00} .card.no::before{background:#b8c2bf} .card.new::before{background:var(--new)}
+.card.no{opacity:.8}
+.card .top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;min-height:22px}
+.vd{font-size:11px;font-weight:700;border-radius:5px;padding:2px 7px;white-space:nowrap}
+.vd.ok{background:var(--accent);color:#fff} .vd.cond{background:#8a5a00;color:#fff} .vd.no{background:#e4e7e6;color:var(--muted)} .vd.newtag{background:var(--new);color:#fff}
+.card .src{color:var(--muted);font-weight:600}
+.dday{margin-left:auto;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dday.soon{background:var(--warn-soft);color:var(--warn)} .dday.hot{background:var(--new-soft);color:var(--new)}
+.card a.title{font-weight:650;font-size:15px;line-height:1.45;text-decoration:none;color:var(--ink);word-break:keep-all}
+.card a.title:hover{text-decoration:underline}
+.facts{display:flex;flex-wrap:wrap;gap:4px 6px}
+.facts span{font-size:12px;color:var(--ink);background:var(--bg);border-radius:6px;padding:2px 8px}
+
+details{border:0;border-radius:12px;padding:12px 14px;background:var(--panel);box-shadow:var(--shadow)}
+details summary{cursor:pointer;font-weight:700;font-size:14px}
+details p,details li{font-size:14px}
+details ul{padding-left:18px;margin:8px 0 0;display:flex;flex-direction:column;gap:6px}
+.card details{box-shadow:none;border-radius:0;padding:0;background:none}
+.card .body{margin-top:2px}
+.card .body>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--accent);padding:7px 10px;border-radius:8px;background:var(--accent-soft)}
+.card .body>summary::-webkit-details-marker{display:none}
+.card .body>summary::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 4px 0 0;transition:transform .15s}
+.card .body[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
+.kv{margin:10px 0 0;display:grid;grid-template-columns:62px 1fr;gap:7px 10px;font-size:13.5px;line-height:1.5}
+.kv dt{color:var(--muted);font-size:12px;font-weight:600;padding-top:2px} .kv dd{margin:0;word-break:keep-all} .kv dd.full{grid-column:1/-1}
+.card .prep{font-size:13px;margin-top:10px;line-height:1.5;padding-top:10px;border-top:1px solid var(--line)} .card .prep b{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.card .danji-tbl{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;overflow-x:auto} .card .danji-tbl b{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+.card .danji-tbl table{border-collapse:collapse;width:100%} .card .danji-tbl th,.card .danji-tbl td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;white-space:nowrap}
+.card .danji-tbl th{color:var(--muted);font-weight:600;font-size:11.5px} .card .danji-tbl tr:last-child td{border-bottom:0}
+.card .sumd{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.card .sumd summary{font-size:13px;font-weight:600;color:var(--accent)}
+.card .sumd div{white-space:pre-line;font-size:13.5px;margin-top:6px;line-height:1.6}
+.card .ask{align-self:flex-start;margin-top:2px;font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
+.card .ask:hover{background:#d3e7de} .card .ask:disabled{opacity:.6;cursor:default}
+.facts .loc{font:inherit;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0;border-radius:6px;padding:2px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.facts .loc::before{content:"";width:8px;height:8px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:currentColor}
+.facts .loc:hover{background:#d3e7de}
+.vd.done{background:var(--accent-soft);color:var(--accent)}
+.card .mark{align-self:flex-start;margin-top:2px;font:inherit;font-size:12.5px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+.card .mark:hover{color:var(--accent);border-color:var(--accent)} .card .mark:disabled{opacity:.6;cursor:default}
+.kv.sched{grid-template-columns:auto 1fr;margin-top:4px} .kv .past{opacity:.45} .kv dt.next,.kv dd.next{color:var(--accent);font-weight:700}
+.card .news{font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)} .card .news b{display:block;color:var(--muted);font-size:12px} .card .news ul{margin:4px 0 0;padding-left:16px}
+.hidwrap{list-style:none} .hid{padding:10px 14px;box-shadow:none;background:transparent;border:1px dashed var(--line)} .hid>summary{font-size:13px;color:var(--muted);font-weight:600} .hid .list{margin-top:10px}
+
+.danji{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;cursor:pointer;background:var(--panel);box-shadow:var(--shadow);transition:transform .12s}
+.danji:hover{transform:translateY(-1px)}
+.danji .rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid transparent}
+.danji .rank.watch{border-color:var(--watch)} .danji .rank.hot{border-color:var(--new)}
+.danji .name{font-weight:650;min-width:0;word-break:keep-all;line-height:1.4}
+.danji .name small{display:block;font-weight:400;color:var(--muted);font-size:12px;line-height:1.45}
+.danji .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.danji .num b{display:block;font-size:13px;color:var(--accent)} .danji .num i{font-style:normal;font-size:11.5px;color:var(--muted)}
+
+.tl{display:flex;flex-direction:column}
+.tm{display:grid;grid-template-columns:52px 1fr;gap:0 12px}
+.tm .tmh{text-align:right;padding-top:9px;line-height:1.2} .tm .tmh b{font-size:14px} .tm .tmh small{display:block;color:var(--muted);font-size:11px}
+.tm ul{list-style:none;margin:0;padding:8px 0 14px 16px;border-left:2px solid var(--line);position:relative;display:flex;flex-direction:column;gap:6px}
+.tm ul::before{content:"";position:absolute;left:-6px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--panel);border:2px solid #b8c2bf}
+.tm.now ul::before{background:var(--accent);border-color:var(--accent)} .tm.now .tmh b{color:var(--accent)}
+.tm li{background:var(--panel);border-radius:10px;padding:9px 12px;box-shadow:var(--shadow);font-size:13.5px;font-weight:600;line-height:1.4}
+.tm li small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:1px}
+.tm li.none{background:none;box-shadow:none;padding:4px 0;color:var(--muted);font-weight:400;font-size:12.5px}
+.tm.now li{background:var(--accent-soft)}
+.steps{list-style:none;counter-reset:s;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li{counter-increment:s;display:flex;gap:8px;align-items:baseline;font-size:13.5px}
+.steps li::before{content:counter(s);flex:none;width:18px;height:18px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.how{display:flex;flex-direction:column;gap:8px}
+.foot{color:var(--muted);font-size:12px;line-height:1.5}
+
+.legend{position:absolute;bottom:14px;left:14px;background:rgba(255,255,255,.95);padding:8px 10px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.25);font-size:12px;line-height:1.6;z-index:1000}
+.legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid #333}
+.legend .ring{background:#fff}
+.legend .ring.hot{border:3px solid var(--new)}
+.legend .ring.watch{border:3px solid var(--watch)}
+.legend .pin{display:inline-block;width:10px;height:10px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--new);margin:0 6px 0 1px}
+.npin span{position:absolute;left:3px;top:2px;width:16px;height:16px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.npin span::after{content:"";position:absolute;left:4px;top:4px;width:4px;height:4px;border-radius:50%;background:#fff}
+
+.regions{position:absolute;top:12px;right:12px;z-index:1000;display:flex;gap:4px;background:rgba(255,255,255,.95);padding:4px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.regions button{border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer}
+.regions button.on{background:var(--accent);color:#fff}
+.tabs{display:none}
+@media (max-width:900px){
+  header{gap:8px}
+  header .date{display:none}
+  .layout{grid-template-columns:1fr;height:calc(100vh - var(--header) - var(--tabs));}
+  .panel{border-right:none;padding-bottom:24px}
+  .panel[hidden],.mapwrap[hidden]{display:none}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;position:fixed;left:0;right:0;bottom:0;height:var(--tabs);background:var(--panel);border-top:1px solid var(--line);z-index:20;padding-bottom:env(safe-area-inset-bottom,0px)}
+  .tabs button{border:0;background:none;font:inherit;font-weight:700;color:var(--muted);font-size:15px}
+  .tabs button.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+}
+.leaflet-popup-content{font-size:13px;line-height:1.5;margin:10px 12px}
+.leaflet-popup-content b.name{font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>임대주택 알림</h1>
+  <span class="date">2026년 09월 27일 기준, 서대문, 은평, 중구, 의왕</span>
+  <div class="chips">
+    <span class="chip new">새 공고 0</span>
+    <span class="chip">접수 중 1</span>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="panel" id="panel">
+    <nav class="ptabs" id="ptabs">
+      <button data-t="notice" class="on">공고<span>1</span></button>
+      <button data-t="danji">단지<span>12</span></button>
+      <button data-t="cal">일정</button>
+      <button data-t="how">신청 방법</button>
+    </nav>
+
+    <div class="pane" data-pane="notice">
+      
+      <section>
+        <h2>새로 뜬 공고 <span class="cnt">0</span></h2>
+        <ul class="list"><li class="empty">오늘 새로 뜬 공고가 없습니다</li></ul>
+      </section>
+      <section>
+        <h2>접수 중 <span class="cnt">1</span></h2>
+        <ul class="list"><li class="card ok"><div class="top"><span class="vd ok">신청 가능</span><span class="src">SH 매입임대</span><span class="dday hot">D-3</span></div><a class="title" href="https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=310107&amp;multi_itm_seq=2" target="_blank">(수정) 2026년 2차 장기미임대 매입임대주택 입주자모집공고(2026. 8. 28.)</a><div class="facts"><span>접수 9/28(월) ~ 9/30(수)</span><span>인터넷 청약</span><span>관심 지역 단지 1곳</span><button class="loc" data-id="SH:310107">지도에서 위치 보기</button></div><details class="body"><summary>판정과 준비물 보기</summary><dl class="kv"><dt>해당 여부</dt><dd>가능. 신청자는 만19세 이상 무주택 서울 주민등록자로 1인가구 소득기준(월 5,720,045원, 130%) 이하이므로 1순위 해당. 이 공고에는 자산·자동차 기준이 없어 해당 조건은 결격사유 아님.</dd><dt>대상 지역</dt><dd>은평구(구산동, 명칭없음 단지 304호) 존재. 서대문구·의왕시는 목록에 없음(공고는 서울 지역만 대상이며 의왕시는 공고문에 없음).</dd><dt>접수</dt><dd>2026.9.28.(월) 10:00 ~ 9.30.(수) 17:00, 인터넷청약(www.i-sh.co.kr/app). 고령자 아니므로 우편접수 불가.</dd><dt>지금 할 일</dt><dd>공동인증서(또는 간편인증) 준비 후 9.28~9.30 인터넷청약시스템에서 은평구 단지 1개 지정 신청.</dd></dl><div class="danji-tbl"><b>관심 지역 단지</b><table><thead><tr><th>구</th><th>단지</th><th>면적</th><th>세대</th><th>보증금</th><th>월세</th></tr></thead><tbody><tr><td>은평구</td><td>명칭없음(구산동)</td><td>26.51</td><td>1</td><td>13,740,000</td><td>179,000</td></tr></tbody></table></div><div class="prep"><b>준비물</b>공동인증서(또는 금융인증서·간편인증서), 주민등록등본, 가족관계증명서, 청약통장 관련서류(참고용), 개인정보 수집·이용 동의서</div><details class="sumd"><summary>공고문 전체 요약 보기</summary><div>1. 신청 자격과 순위
+공고일(2026.8.28) 기준 서울시 주민등록 등재된 무주택 성년자로 신청자는 자격요건 충족. 1인가구 도시근로자 월평균소득 130% 기준은 5,720,045원. 신청자 소득이 이 기준 이하이므로 1순위(도시근로자 가구당 월평균소득 130% 이하) 해당.
+
+2. 자산과 자동차 기준 금액
+공고문에 없음(이 공고는 소득기준만 규정, 자산·자동차 보유기준 언급 없음)
+
+3. 대상 단지 목록 중 서대문구, 은평구, 의왕시 단지
+서대문구: 공고문에 없음
+은평구: 0096J 명칭없음(구산동 178-22), 서울 은평구 갈현로15길 26, 304호, 전용 26.51㎡, 개방형원룸, 승강기 미설치, 세대수 1호
+의왕시: 공고문에 없음(본 공고는 서울주택도시개발공사 관할 서울시 소재 주택만 공급)
+
+4. 임대보증금과 월임대료
+은평구 명칭없음 단지 304호 기준: 임대보증금 13,740,000원, 월임대료 179,000원
+(전세전환 시 보증금 39,380,000원/월35,800원, 월세전환 시 보증금 5,490,000원/월196,100원)
+
+5. 접수 일정 전체
+모집공고: 2026.8.28.(금)
+신청접수: 2026.9.28.(월) 10:00 ~ 9.30.(수) 17:00
+서류심사대상자 발표: 2026.10.23.(금) 17:00
+서류제출: 2026.10.26.(월)~10.29.(목)
+자격검증·소명: 2026.11~12월(개별통보)
+당첨자 발표: 2026.12.28.(월) 17:00
+주택공개: 2027.1.6.(수)~1.8.(금)
+계약(온라인): 2027.1.11.(월)~1.13.(수), 방문계약: 2027.1.14.(목)
+입주: 2027.2.1.(월)~4.2.(금)
+
+6. 제출 서류 목록
+장기미임대 매입임대주택 서류제출신청서, 개인정보 수집·이용 및 제3자제공 동의서(세대구성원 전원), 신청자 주민등록등본(모든 세대원 뒷자리 표기), 가족관계증명서(상세), 외국인등록사실증명서(해당자만), 임신진단서(해당자만), 장애인증명서(저층신청 해당자만) - 신청자는 65세 미만·비장애로 저층우선배정 해당 없음.
+
+7. 주의사항
+1세대 1주택단지만 신청 가능, 중복신청 시 전부 무효. 신청 후 수정 불가. 동·호는 무작위 전산배정, 변경·교환 불가. 최초계약 2년, 재계약 1회(최장 6년), 무주택자격 유지 필요. 양도·전대 금지. 관리비(승강기·기계식주차 등) 추가 발생 가능하므로 계약 전 확인 필요.</div><p class="foot">Claude가 공고문을 읽고 정리한 내용입니다. 접수 전 공고문 원문을 한 번 더 확인하세요.</p></details></details><button class="mark" data-id="SH:310107">신청 완료로 표시</button></li><li class="hidwrap"><details class="hid"><summary>관심 지역 밖 1건 보기</summary><ul class="list"><li class="card ok"><div class="top"><span class="vd ok">신청 가능</span><span class="src">SH 잔여세대</span><span class="dday ">D-10</span></div><a class="title" href="https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=310673&amp;multi_itm_seq=2" target="_blank">2026년 신정도시마을 잔여세대 입주자모집공고(26. 9. 23.)</a><div class="facts"><span>접수 10/6(화) ~ 10/7(수)</span><span>인터넷 청약</span><span>관심 지역 단지 없음</span><button class="loc" data-id="SH:310673">지도에서 위치 보기</button></div><details class="body"><summary>판정과 준비물 보기</summary><dl class="kv"><dt>해당 여부</dt><dd>가능 - 서울 거주 무주택 1인가구, 소득기준(1인가구 90%+20%p 가산 적용 시 4,194,699원 이하) 충족, 자산·자동차 기준 충족</dd><dt>대상 지역</dt><dd>서대문구, 은평구, 의왕시 단지 없음 (본 공고는 양천구 신정동 &quot;신정도시마을&quot; 1개 단지만 공급)</dd><dt>접수</dt><dd>선순위(소득70%이하) 2026.10.6.(화) 10:00~10.7.(수) 17:00, 후순위(소득90%이하) 2026.10.8.(목) 10:00~17:00, 인터넷청약(www.i-sh.co.kr), 만65세 미만이므로 우편접수 불가</dd><dt>지금 할 일</dt><dd>공동인증서(또는 간편인증) 준비 후 인터넷청약 사이트에서 신정도시마을 39㎡ 일반공급 신청</dd></dl><div class="prep"><b>준비물</b>공동인증서(또는 간편인증), 주민등록표등본, 주민등록표초본, 가족관계증명서, 금융정보등제공동의서, 개인정보수집이용및제3자제공동의서, 청약통장 순위확인서</div><details class="sumd"><summary>공고문 전체 요약 보기</summary><div>1. 신청 자격과 순위
+서울 거주 무주택 1인가구, 만19세 이상 성년자로 신청자격 충족. 1인가구는 소득기준 20%p 가산 적용.
+- 선순위(70%이하 기준, 1인가구 +20%p): 3,432,027원 → 실적용 기준은 90%(2인 이하 자녀가산과 무관, 1인가구는 20%p 가산되어 90%란에 해당) 즉 4,194,699원 이하이면 선순위
+- 신청자 소득이 기준 이하이므로 선순위(소득70%이하 해당 구간, 1인가구 가산 적용 시 4,194,699원 이하)로 분류되어 1순위 접수 대상
+
+2. 자산과 자동차 기준
+총자산가액 34,500만원 이하 (기본), 자동차가액 4,542만원 이하 (기본). 신청자는 기준 충족.
+
+3. 대상 단지 목록 중 서대문구, 은평구, 의왕시 단지
+공고문에 없음 (본 공고는 양천구 신정동 신정도시마을 1개 단지, 39㎡ 13호 공급만 해당)
+
+4. 임대보증금과 월임대료 (39㎡ 기준)
+임대보증금 44,000천원(계약금 4,400천원, 잔금 39,600천원), 월임대료 335,000원
+
+5. 접수 일정 전체
+- 입주자모집공고: 2026.9.23.(수)
+- 사전주택공개: 2026.9.29.(화)~9.30.(수)
+- 인터넷청약 접수(선순위): 2026.10.6.(화)~10.7.(수)
+- 인터넷청약 접수(후순위): 2026.10.8.(목)
+- 서류심사대상자 발표: 2026.10.19.(월)
+- 서류제출: 2026.10.22.(목)~10.26.(월)
+- 소명심사대상자 발표: 2026년 12월 중
+- 당첨자 발표: 2026.12.28.(월)
+- 계약기간: 2027.1.11.(월)~1.13.(수)
+
+6. 제출 서류 목록
+공통: 심사서류제출신청서, 주민등록표등본, 주민등록표초본, 가족관계증명서, 금융정보등제공동의서, 개인정보수집이용및제3자제공동의서
+가점 해당자만: 청약통장 순위확인서(24회 이상 납입 확인용) 등 해당 항목 서류
+
+7. 주의사항
+1세대 1주택 신청 원칙, 중복신청시 전부 무효. 인터넷·우편 동시신청 시 무효. 신청 완료 후 수정 불가. 소득·자산·무주택 요건은 입주 시까지 유지해야 하며 미유지시 당첨취소 또는 계약거절 가능. 신청자는 만65세 미만이므로 우편접수 대상 아니며 반드시 인터넷청약으로만 신청 가능.</div><p class="foot">Claude가 공고문을 읽고 정리한 내용입니다. 접수 전 공고문 원문을 한 번 더 확인하세요.</p></details></details><button class="mark" data-id="SH:310673">신청 완료로 표시</button></li></ul></details></li></ul>
+      </section>
+      <p class="foot">공고 카드의 "공고문 요약 요청"을 누르면 15분 안에 어머니 기준 판정과 준비물이 올라옵니다. 신청한 뒤 "신청 완료로 표시"를 누르면 발표와 서류 제출 일정을 따로 챙겨 알려 드립니다.</p>
+    </div>
+
+    <div class="pane" data-pane="danji" hidden>
+      <section>
+        <h2>자리 잘 나는 단지 <span class="cnt">12</span></h2>
+        <ul class="list"><li class="danji" data-name="남산타운(신당3)" data-type="50년임대"><span class="rank " style="background:#2e8b57">1</span><span class="name">남산타운(신당3)<small>중구, 50년임대, SH공사</small><small>2002년 준공 (24년차), 복도식, 승강기 있음</small><small>보증금 1,379만원, 월 17.1만원 (33㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 31건</i></span></li><li class="danji" data-name="구파발10-3단지(은평3-5,임대)" data-type="장기전세"><span class="rank " style="background:#2e8b57">2</span><span class="name">구파발10-3단지(은평3-5,임대)<small>은평, 장기전세, SH공사</small><small>2012년 준공 (14년차), 혼합식, 승강기 있음</small><small>보증금 13,665만~45,006만원 (60~85㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 23건</i></span></li><li class="danji" data-name="독립문극동(현저4)" data-type="50년임대"><span class="rank " style="background:#2e8b57">3</span><span class="name">독립문극동(현저4)<small>서대문, 50년임대, SH공사</small><small>1998년 준공 (28년차), 복도식, 승강기 있음</small><small>보증금 885만원, 월 13.1만원 (27㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 21건</i></span></li><li class="danji" data-name="약수하이츠동아(신당4)" data-type="50년임대"><span class="rank " style="background:#2e8b57">4</span><span class="name">약수하이츠동아(신당4)<small>중구, 50년임대, SH공사</small><small>1999년 준공 (27년차), 복도식, 승강기 있음</small><small>보증금 1,153만원, 월 14.8만원 (33㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 20건</i></span></li><li class="danji" data-name="홍제원현대(홍제3)" data-type="50년임대"><span class="rank " style="background:#2e8b57">5</span><span class="name">홍제원현대(홍제3)<small>서대문, 50년임대, SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 986만원, 월 14.2만원 (33㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 16건</i></span></li><li class="danji" data-name="은평뉴타운 폭포동" data-type="장기전세"><span class="rank " style="background:#2e8b57">6</span><span class="name">은평뉴타운 폭포동<small>은평, 장기전세, SH공사</small><small>2010년 준공 (16년차), 계단식, 승강기 있음</small><small>보증금 31,850만~41,262만원 (85㎡)</small></span><span class="num"><b>대기 1명</b><i>1년 퇴거 14건</i></span></li><li class="danji" data-name="신당삼성(신당5)" data-type="50년임대"><span class="rank " style="background:#2e8b57">7</span><span class="name">신당삼성(신당5)<small>중구, 50년임대, SH공사</small><small>1999년 준공 (27년차), 복도식, 승강기 있음</small><small>보증금 1,210만원, 월 15.9만원 (32㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 14건</i></span></li><li class="danji" data-name="홍은벽산(홍은5-3)" data-type="50년임대"><span class="rank " style="background:#2e8b57">8</span><span class="name">홍은벽산(홍은5-3)<small>서대문, 50년임대, SH공사</small><small>1997년 준공 (29년차), 복도식, 승강기 있음</small><small>보증금 796만원, 월 10.2만원 (30㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 12건</i></span></li><li class="danji" data-name="DMC래미안e편한세상(가재울뉴타운3)" data-type="50년임대"><span class="rank watch" style="background:#2e8b57">9</span><span class="name">DMC래미안e편한세상(가재울뉴타운3)<small>서대문, 50년임대, SH공사</small><small>2012년 준공 (14년차), 복도식, 승강기 있음</small><small>보증금 3,052만~3,596만원, 월 19.6만~23.1만원 (40~48㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 11건</i></span></li><li class="danji" data-name="인왕산현대(홍제4)" data-type="50년임대"><span class="rank " style="background:#2e8b57">10</span><span class="name">인왕산현대(홍제4)<small>서대문, 50년임대, SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 1,124만원, 월 15.1만원 (33㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 10건</i></span></li><li class="danji" data-name="백련산힐스테이트2차(응암8)" data-type="50년임대"><span class="rank " style="background:#2e8b57">11</span><span class="name">백련산힐스테이트2차(응암8)<small>은평, 50년임대, SH공사</small><small>2011년 준공 (15년차), 복도식, 승강기 있음</small><small>보증금 2,326만~2,416만원, 월 15.3만~15.9만원 (31~32㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 10건</i></span></li><li class="danji" data-name="중림삼성(충정삼성)" data-type="50년임대"><span class="rank " style="background:#2e8b57">12</span><span class="name">중림삼성(충정삼성)<small>중구, 50년임대, SH공사</small><small>2000년 준공 (26년차), 복도식, 승강기 있음</small><small>보증금 1,587만원, 월 18.6만원 (32㎡)</small></span><span class="num"><b>대기 0명</b><i>1년 퇴거 9건</i></span></li></ul>
+        <p class="foot" style="margin:10px 0 0">공고와는 별개인 참고 정보입니다. 대기자가 적고 최근 1년 퇴거가 많은 순이라, 이 단지들의 공고가 뜨면 우선 노려볼 만합니다. 누르면 지도에서 위치와 신청처가 열립니다.</p>
+      </section>
+    </div>
+
+    <div class="pane" data-pane="cal" hidden>
+      <section>
+        <h2>앞으로 나올 공고 예상</h2>
+        <div class="tl"><div class="tm now"><div class="tmh"><b>9월</b><small>이번 달</small></div><ul><li>SH 장기전세 (수시, 연 3~4회)<small>SH 인터넷청약, 청약통장 필요</small></li></ul></div><div class="tm"><div class="tmh"><b>10월</b><small>2026</small></div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="tm"><div class="tmh"><b>11월</b><small>2026</small></div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="tm"><div class="tmh"><b>12월</b><small>2026</small></div><ul><li>SH 장기전세 (수시, 연 3~4회)<small>SH 인터넷청약, 청약통장 필요</small></li></ul></div><div class="tm"><div class="tmh"><b>1월</b><small>2027</small></div><ul><li class='none'>정기 공고 없음</li></ul></div><div class="tm"><div class="tmh"><b>2월</b><small>2027</small></div><ul><li>SH 일반 매입임대 입주대기자 모집<small>동 주민센터 방문 접수, 서대문구 포함 여부는 공고마다 다름</small></li><li>SH 장기미임대 매입임대 입주자 모집<small>SH 인터넷청약</small></li></ul></div><div class="tm"><div class="tmh"><b>수시</b><small>비정기</small></div><ul><li>SH 50년임대 예비입주자 모집 (비정기)<small>대기자가 소진되면 공고, 서대문 단지 다수 해당</small></li></ul></div></div>
+        <p class="foot" style="margin:6px 0 0">지난 공고 주기로 짐작한 일정이라 실제와 다를 수 있습니다. 미리 인증서와 서류를 준비해두는 용도입니다.</p>
+      </section>
+    </div>
+
+    <div class="pane" data-pane="how" hidden>
+      <section>
+        <h2>신청 방법</h2>
+        <div class="how">
+        <details open>
+          <summary>공통 흐름</summary>
+          <ol class="steps">
+            <li>공고 확인</li><li>접수 기간에 청약</li><li>서류심사 대상자 발표</li><li>서류 제출</li><li>당첨 또는 예비번호</li><li>빈집이 나오면 순번대로 계약</li>
+          </ol>
+          <p style="margin:10px 0 0;color:var(--muted);font-size:13px">소득과 자산은 "정보 조회 동의"로 기관이 조회하고, 직접 내는 서류는 보통 주민등록등본, 초본, 청약통장 확인서입니다.</p>
+        </details>
+        <details>
+          <summary>SH (서울)</summary>
+          <ul>
+            <li>인터넷 청약 공고: <a href="https://www.i-sh.co.kr/app" target="_blank">SH 인터넷청약시스템</a> 로그인(공동인증서 필수) → 청약신청 → 공고 선택 → 단지, 평형 선택 → 접수. 접수 기간이 아니면 목록이 비어 있습니다.</li>
+            <li>방문 접수 공고(일반 매입임대 등): 어머니 주소지 동 주민센터에 신분증, 도장을 들고 방문. 신청서와 동의서는 창구에 있습니다.</li>
+            <li>서류는 며칠 뒤 공고 게시판에 "서류심사 대상자 발표"가 뜨면 그때 냅니다.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>LH</summary>
+          <ul>
+            <li><a href="https://apply.lh.or.kr" target="_blank">LH 청약플러스</a> 로그인 → 청약 → 임대주택 → 공고의 청약신청 → 유형, 단지, 주택형 선택 → 접수.</li>
+            <li>공고문에 "현장접수"라고 적힌 매입임대, 전세임대는 주거복지지사에 직접 방문합니다.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>GH (경기, 의왕)</summary>
+          <ul><li><a href="https://apply.gh.or.kr" target="_blank">GH 청약센터</a> 로그인 → 임대주택 청약공고 → 공고 선택 → 신청.</li></ul>
+        </details>
+        </div>
+      </section>
+    </div>
+    <p class="foot" style="margin-top:22px">출처: LH 청약플러스, SH 공고 게시판, GH 청약센터, 마이홈포털 예비입주자 대기현황. 매일 저녁 8시 갱신.</p>
+  </div>
+
+  <div class="mapwrap" id="mapwrap">
+    <div id="map"></div>
+    <div class="regions">
+      <button data-r="all" class="on">전체</button><button data-r="서대문">서대문</button><button data-r="은평">은평</button><button data-r="중구">중구</button><button data-r="의왕">의왕</button>
+    </div>
+    <div class="legend">
+      <span class="dot" style="background:#2e8b57"></span>대기 10명 이하<br>
+      <span class="dot" style="background:#e69f00"></span>대기 30명 이하<br>
+      <span class="dot" style="background:#888"></span>대기 많음<br>
+      <span class="dot ring hot"></span>지금 접수 중인 공고 있음<br>
+      <span class="dot ring watch"></span>관심 단지<br>
+      <span class="pin"></span>공고 위치<br>
+      점이 클수록 자리가 자주 남
+    </div>
+  </div>
+</div>
+
+<nav class="tabs">
+  <button id="tabList" class="on">공고와 단지</button>
+  <button id="tabMap">지도</button>
+</nav>
+
+<script>
+const pts=[{"lat": 37.5952782280538, "lng": 126.95222185326, "color": "#2e8b57", "watch": false, "desc": "1997년 준공 (29년차), 복도식, 승강기 있음", "rent": "보증금 580만원, 월 7.8만원 (29㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍제유원(홍제1)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 세검정로 134", "households": 150, "wait": 0, "out": 6}, {"lat": 37.5945041899954, "lng": 126.945719431223, "color": "#2e8b57", "watch": false, "desc": "1997년 준공 (29년차), 복도식, 승강기 있음", "rent": "보증금 796만원, 월 10.2만원 (30㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍은벽산(홍은5-3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 세검정로1길 95", "households": 180, "wait": 0, "out": 12}, {"lat": 37.5757527598062, "lng": 126.912753210085, "color": "#e69f00", "watch": false, "desc": "1996년 준공 (30년차), 복도식, 승강기 있음", "rent": "보증금 881만원, 월 10.8만원 (32㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "북가좌삼호(북가좌2)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 거북골로 154", "households": 267, "wait": 14, "out": 9}, {"lat": 37.5861067033835, "lng": 126.950347371236, "color": "#2e8b57", "watch": false, "desc": "2000년 준공 (26년차), 복도식, 승강기 있음", "rent": "보증금 1,124만원, 월 15.1만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "인왕산현대(홍제4)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 통일로34길 46", "households": 246, "wait": 0, "out": 10}, {"lat": 37.5862529118274, "lng": 126.94974023594, "color": "#2e8b57", "watch": false, "desc": "2000년 준공 (26년차), 복도식, 승강기 있음", "rent": "보증금 986만원, 월 14.2만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍제원현대(홍제3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 통일로34길 43", "households": 482, "wait": 0, "out": 16}, {"lat": 37.5720168961364, "lng": 126.958377280933, "color": "#2e8b57", "watch": false, "desc": "1998년 준공 (28년차), 복도식, 승강기 있음", "rent": "보증금 885만원, 월 13.1만원 (27㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "독립문극동(현저4)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 독립문공원길 17", "households": 600, "wait": 0, "out": 21}, {"lat": 37.5741271316001, "lng": 126.91956331025, "color": "#2e8b57", "watch": false, "desc": "1999년 준공 (27년차), 복도식, 승강기 있음", "rent": "보증금 1,385만원, 월 17.3만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "남가좌현대(남가좌6)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 가재울로 45", "households": 330, "wait": 3, "out": 16}, {"lat": 37.5793459843766, "lng": 126.916812532061, "color": "#2e8b57", "watch": false, "desc": "2000년 준공 (26년차), 복도식, 승강기 있음", "rent": "보증금 1,183만원, 월 16.6만원 (31㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "DMC래미안클라시스(남가좌7)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 증가로 191", "households": 358, "wait": 3, "out": 17}, {"lat": 37.5668592636658, "lng": 126.961105478252, "color": "#2e8b57", "watch": false, "desc": "2002년 준공 (24년차), 복도식, 승강기 있음", "rent": "보증금 1,565만원, 월 16.2만원 (28㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "냉천동부(냉천)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 독립문로14길 64-6", "households": 76, "wait": 8, "out": 6}, {"lat": 37.5766784852326, "lng": 126.914407082132, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 2,666만원, 월 24.1만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "DMC아이파크(가재울뉴타운1)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 거북골로14길 32", "households": 90, "wait": 0, "out": 2}, {"lat": 37.5761946233859, "lng": 126.916288911612, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 2,693만원, 월 23.9만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "DMC센트레빌(가재울뉴타운2)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 거북골로 120", "households": 100, "wait": 0, "out": 2}, {"lat": 37.5969185899335, "lng": 126.938618302613, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 2,914만원, 월 27.7만원 (30㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍은센트레빌", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 통일로 553", "households": 48, "wait": 0, "out": 0}, {"lat": 37.566527425201, "lng": 126.962294551457, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 2,898만원, 월 28.0만원 (30㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "돈의문센트레빌(서대문센트레빌)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 독립문로14길 33", "households": 120, "wait": 0, "out": 2}, {"lat": 37.5982904125635, "lng": 126.944658341571, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 계단식, 승강기 있음", "rent": "보증금 29,250만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "동원베네스트", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 서대문구 홍은중앙로1길 65", "households": 22, "wait": 0, "out": 1}, {"lat": 37.5725594951925, "lng": 126.908704007781, "color": "#2e8b57", "watch": true, "desc": "2012년 준공 (14년차), 복도식, 승강기 있음", "rent": "보증금 3,052만~3,596만원, 월 19.6만~23.1만원 (40~48㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "DMC래미안e편한세상(가재울뉴타운3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 수색로 100", "households": 629, "wait": 0, "out": 11}, {"lat": 37.5608323227829, "lng": 126.952929933705, "color": "#2e8b57", "watch": false, "desc": "2015년 준공 (11년차), 복도식, 승강기 있음", "rent": "보증금 2,910만~4,545만원, 월 14.1만~22.1만원 (34~54㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "신촌푸르지오(북아현1-2)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 북아현로1길 50", "households": 163, "wait": 0, "out": 2}, {"lat": 37.5840890951974, "lng": 126.940985789211, "color": "#2e8b57", "watch": false, "desc": "2016년 준공 (10년차), 계단식, 승강기 일부동", "rent": "보증금 28,000만~37,674만원 (59~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍제금호어울림", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 서대문구 모래내로 411", "households": 34, "wait": 0, "out": 1}, {"lat": 37.570180961328, "lng": 126.918422263922, "color": "#2e8b57", "watch": false, "desc": "2015년 준공 (11년차), 복도식, 승강기 있음", "rent": "보증금 3,236만~5,179만원, 월 18.1만~28.9만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "DMC파크뷰자이(가재울4)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 가재울미래로 2", "households": 750, "wait": 0, "out": 8}, {"lat": 37.5584038899942, "lng": 126.954528908232, "color": "#2e8b57", "watch": false, "desc": "2017년 준공 (9년차), 복도식, 승강기 있음", "rent": "보증금 3,499만~6,384만원, 월 15.9만~29.1만원 (33~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "e편한세상신촌아파트(북아현1-3구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 북아현로1길 17", "households": 196, "wait": 0, "out": 1}, {"lat": 37.5848611002809, "lng": 126.948026165672, "color": "#2e8b57", "watch": false, "desc": "2018년 준공 (8년차), 복도식, 승강기 있음", "rent": "보증금 3,011만~4,368만원, 월 14.5만~21.1만원 (35~51㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍제센트럴아이파크아파트(홍제2구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 통일로 395", "households": 130, "wait": 0, "out": 2}, {"lat": 37.5769040488379, "lng": 126.91990506873, "color": "#2e8b57", "watch": false, "desc": "2019년 준공 (7년차), 복도식, 승강기 있음", "rent": "보증금 3,414만~4,452만원, 월 19.3만~25.1만원 (40~52㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "DMC에코자이(가재울6구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 거북골로 84", "households": 125, "wait": 0, "out": 3}, {"lat": 37.5754488037837, "lng": 126.918185409327, "color": "#2e8b57", "watch": false, "desc": "2020년 준공 (6년차), 복도식, 승강기 있음", "rent": "보증금 2,394만~3,625만원, 월 14.2만~21.4만원 (34~52㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "래미안루센티아(가재울5)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 거북골로 100", "households": 112, "wait": 0, "out": 3}, {"lat": 37.5902811242488, "lng": 126.948195101408, "color": "#2e8b57", "watch": false, "desc": "2021년 준공 (5년차), 복도식, 승강기 있음", "rent": "보증금 4,087만~6,000만원, 월 18.8만~27.6만원 (39~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "홍제역 해링턴 플레이스(홍제3구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 세무서8길 30", "households": 168, "wait": 0, "out": 0}, {"lat": 37.5978953583165, "lng": 126.946049726135, "color": "#2e8b57", "watch": false, "desc": "2020년 준공 (6년차), 혼합식, 승강기 일부동", "rent": "보증금 2,898만~4,034만원, 월 15.9만~22.2만원 (33~50㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "서대문", "name": "북한산 두산위브(홍은14구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 서대문구 홍은중앙로3길 9", "households": 35, "wait": 0, "out": 3}, {"lat": 37.6436427902042, "lng": 126.923601019877, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 2,984만~6,593만원, 월 21.9만~40.6만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을8-2단지(은평1-1,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 17", "households": 403, "wait": 0, "out": 8}, {"lat": 37.6436427902042, "lng": 126.923601019877, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 15,813만원 (59~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을8-2단지(은평1-1,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 17", "households": 403, "wait": 0, "out": 1}, {"lat": 37.6445151279675, "lng": 126.925330154266, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 2,984만~6,992만원, 월 21.9만~42.1만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을8-1단지(은평1-2,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 37", "households": 114, "wait": 0, "out": 5}, {"lat": 37.6445151279675, "lng": 126.925330154266, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을8-1단지(은평1-2,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 37", "households": 114, "wait": 0, "out": 3}, {"lat": 37.6458341900227, "lng": 126.925773195038, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 6,206만원, 월 37.6만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-3단지(은평1-3,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 47", "households": 81, "wait": 0, "out": 4}, {"lat": 37.6458341900227, "lng": 126.925773195038, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-3단지(은평1-3,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 47", "households": 81, "wait": 0, "out": 2}, {"lat": 37.6473387849865, "lng": 126.927938877499, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 6,527만원, 월 39.2만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-2단지(은평1-4,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 77", "households": 77, "wait": 0, "out": 1}, {"lat": 37.6473387849865, "lng": 126.927938877499, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-2단지(은평1-4,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 77", "households": 77, "wait": 0, "out": 1}, {"lat": 37.6475984436036, "lng": 126.929659650764, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 2,984만~7,141만원, 월 21.9만~42.6만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-4단지(은평1-5,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 87", "households": 103, "wait": 0, "out": 3}, {"lat": 37.6475984436036, "lng": 126.929659650764, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-4단지(은평1-5,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 87", "households": 103, "wait": 0, "out": 2}, {"lat": 37.6488830840691, "lng": 126.930841514341, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 4,592만~6,432만원, 월 27.5만~39.7만원 (49~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-3단지(은평1-6,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 107", "households": 195, "wait": 0, "out": 6}, {"lat": 37.6488830840691, "lng": 126.930841514341, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 10,288만~15,813만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-3단지(은평1-6,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 107", "households": 195, "wait": 0, "out": 1}, {"lat": 37.6490769383299, "lng": 126.931401046262, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 2,984만~6,840만원, 월 21.9만~40.2만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-2단지(은평1-7,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 100", "households": 89, "wait": 0, "out": 3}, {"lat": 37.6490769383299, "lng": 126.931401046262, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-2단지(은평1-7,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 100", "households": 89, "wait": 0, "out": 1}, {"lat": 37.6462213197809, "lng": 126.929719593523, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 2,984만~6,998만원, 월 21.9만~39.9만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-1단지(은평1-8,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 78-7", "households": 100, "wait": 0, "out": 1}, {"lat": 37.6462213197809, "lng": 126.929719593523, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을6-1단지(은평1-8,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 78-7", "households": 100, "wait": 0, "out": 2}, {"lat": 37.6461087633671, "lng": 126.929397946891, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 4,592만~7,988만원, 월 27.5만~45.7만원 (50~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-1단지(은평1-9,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 78-8", "households": 127, "wait": 0, "out": 4}, {"lat": 37.6461087633671, "lng": 126.929397946891, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-1단지(은평1-9,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 78-8", "households": 127, "wait": 0, "out": 5}, {"lat": 37.6443228670772, "lng": 126.928128673411, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 4,592만~7,438만원, 월 27.5만~44.1만원 (50~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-4단지(은평1-10,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 48-17", "households": 133, "wait": 0, "out": 4}, {"lat": 37.6443228670772, "lng": 126.928128673411, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-4단지(은평1-10,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 48-17", "households": 133, "wait": 0, "out": 3}, {"lat": 37.6443744318027, "lng": 126.926910819817, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 2,984만~6,901만원, 월 21.9만~40.9만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-5단지(은평1-11,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 48-8", "households": 97, "wait": 0, "out": 0}, {"lat": 37.6443744318027, "lng": 126.926910819817, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~41,340만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을7-5단지(은평1-11,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관4로 48-8", "households": 97, "wait": 0, "out": 2}, {"lat": 37.6414672786014, "lng": 126.921867754689, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 2,984만~6,569만원, 월 21.9만~39.5만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을8-3단지(은평1-12,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관3로 70", "households": 180, "wait": 0, "out": 5}, {"lat": 37.6414672786014, "lng": 126.921867754689, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,288만~15,813만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "상림마을8-3단지(은평1-12,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관3로 70", "households": 180, "wait": 0, "out": 0}, {"lat": 37.6323453339884, "lng": 126.921147475847, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 3,004만~5,796만원, 월 22.0만~37.0만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "박석고개1-3단지(은평2-1,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 21-10", "households": 341, "wait": 0, "out": 4}, {"lat": 37.6323453339884, "lng": 126.921147475847, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,866만~43,914만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "박석고개1-3단지(은평2-1,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 21-10", "households": 341, "wait": 5, "out": 7}, {"lat": 37.6339528614576, "lng": 126.923792257881, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 4,316만~6,079만원, 월 28.8만~37.6만원 (49~59㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "마고정3-3단지(은평2-2,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 60", "households": 193, "wait": 0, "out": 1}, {"lat": 37.6339528614576, "lng": 126.923792257881, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 10,708만~43,914만원 (59~84㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "마고정3-3단지(은평2-2,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 60", "households": 193, "wait": 5, "out": 5}, {"lat": 37.6339414298844, "lng": 126.926992695804, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 6,309만원, 월 38.2만원 (59㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "마고정3-2단지(은평2-3,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 90", "households": 200, "wait": 0, "out": 1}, {"lat": 37.6339414298844, "lng": 126.926992695804, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 13,602만~43,914만원 (59~84㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "마고정3-2단지(은평2-3,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 90", "households": 200, "wait": 5, "out": 11}, {"lat": 37.6343127458266, "lng": 126.924929510152, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 6,935만원, 월 41.9만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "우물골2-1단지(은평2-4,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 67", "households": 83, "wait": 0, "out": 2}, {"lat": 37.6343127458266, "lng": 126.924929510152, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 11,904만~43,914만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "우물골2-1단지(은평2-4,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 67", "households": 83, "wait": 9, "out": 0}, {"lat": 37.6343394305416, "lng": 126.926997485026, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 6,768만원, 월 40.1만원 (59~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "우물골2-2단지(은평2-5,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 77", "households": 164, "wait": 0, "out": 4}, {"lat": 37.6343394305416, "lng": 126.926997485026, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 11,904만~43,914만원 (59~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "우물골2-2단지(은평2-5,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관2로 77", "households": 164, "wait": 9, "out": 7}, {"lat": 37.6317488843596, "lng": 126.929022024073, "color": "#2e8b57", "watch": false, "desc": "2010년 준공 (16년차), 계단식, 승강기 있음", "rent": "보증금 31,850만~41,262만원 (85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "은평뉴타운 폭포동", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 77-8", "households": 297, "wait": 1, "out": 14}, {"lat": 37.631814942058, "lng": 126.926227040069, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 2,914만원, 월 22.6만원 (39㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "마고정3-1단지(은평2-11,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 55", "households": 285, "wait": 0, "out": 3}, {"lat": 37.631814942058, "lng": 126.926227040069, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 복도식, 승강기 있음", "rent": "보증금 22,800만~43,914만원 (84~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "마고정3-1단지(은평2-11,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 55", "households": 285, "wait": 4, "out": 9}, {"lat": 37.6321958881937, "lng": 126.920816217427, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 3,004만~5,816만원, 월 22.0만~38.5만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "박석고개1-1단지(은평2-12,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 21-9", "households": 357, "wait": 0, "out": 1}, {"lat": 37.6321958881937, "lng": 126.920816217427, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 혼합식, 승강기 있음", "rent": "보증금 10,866만~43,914만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "박석고개1-1단지(은평2-12,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관1로 21-9", "households": 357, "wait": 5, "out": 6}, {"lat": 37.6422832473788, "lng": 126.921347883049, "color": "#2e8b57", "watch": false, "desc": "2010년 준공 (16년차), 혼합식, 승강기 있음", "rent": "보증금 3,222만~5,641만원, 월 24.8만~36.2만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구파발9-1단지(은평3-3,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관3로 67", "households": 1022, "wait": 0, "out": 6}, {"lat": 37.6422832473788, "lng": 126.921347883049, "color": "#2e8b57", "watch": false, "desc": "2010년 준공 (16년차), 혼합식, 승강기 있음", "rent": "보증금 11,666만~45,006만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구파발9-1단지(은평3-3,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관3로 67", "households": 1022, "wait": 10, "out": 35}, {"lat": 37.6419735824848, "lng": 126.918226704369, "color": "#2e8b57", "watch": false, "desc": "2010년 준공 (16년차), 계단식, 승강기 있음", "rent": "보증금 5,619만~14,729만원, 월 0.0만~36.0만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구파발10-2단지(은평3-4,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 진관3로 15-35", "households": 423, "wait": 0, "out": 2}, {"lat": 37.6419735824848, "lng": 126.918226704369, "color": "#2e8b57", "watch": false, "desc": "2010년 준공 (16년차), 계단식, 승강기 있음", "rent": "보증금 14,729만~45,006만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구파발10-2단지(은평3-4,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 진관3로 15-35", "households": 423, "wait": 0, "out": 7}, {"lat": 37.6434715474298, "lng": 126.915235307696, "color": "#2e8b57", "watch": false, "desc": "2012년 준공 (14년차), 혼합식, 승강기 있음", "rent": "보증금 3,093만~6,139만원, 월 22.3만~37.8만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구파발10-3단지(은평3-5,임대)", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 은평구 북한산로 2", "households": 712, "wait": 0, "out": 4}, {"lat": 37.6434715474298, "lng": 126.915235307696, "color": "#2e8b57", "watch": false, "desc": "2012년 준공 (14년차), 혼합식, 승강기 있음", "rent": "보증금 13,665만~45,006만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구파발10-3단지(은평3-5,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 북한산로 2", "households": 712, "wait": 0, "out": 23}, {"lat": 37.6337076642827, "lng": 126.932907036631, "color": "#2e8b57", "watch": false, "desc": "2014년 준공 (12년차), 혼합식, 승강기 있음", "rent": "보증금 28,710만~41,340만원 (85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "기자촌11단지(은평3-12,임대)", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 연서로46길 7", "households": 21, "wait": 0, "out": 2}, {"lat": 37.6050501417125, "lng": 126.904559166488, "color": "#2e8b57", "watch": false, "desc": "2009년 준공 (17년차), 혼합식, 승강기 있음", "rent": "보증금 278만~4,245만원, 월 3.7만~43.1만원 (19~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "구산(임대)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 갈현로7길 56", "households": 153, "wait": 0, "out": 5}, {"lat": 37.5862434287007, "lng": 126.900916910484, "color": "#e69f00", "watch": false, "desc": "2001년 준공 (25년차), 복도식, 승강기 있음", "rent": "보증금 1,149만원, 월 15.8만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "수색대림(수색2-1)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 은평터널로 66", "households": 464, "wait": 22, "out": 22}, {"lat": 37.6116648407448, "lng": 126.935782590018, "color": "#2e8b57", "watch": false, "desc": "2005년 준공 (21년차), 복도식, 승강기 있음", "rent": "보증금 2,339만원, 월 24.0만원 (32㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "불광SH-ville(불광1)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 불광로2길 46", "households": 100, "wait": 6, "out": 5}, {"lat": 37.6197660018114, "lng": 126.934021540005, "color": "#e69f00", "watch": false, "desc": "2010년 준공 (16년차), 복도식, 승강기 있음", "rent": "보증금 2,769만원, 월 24.8만원 (31㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "북한산힐스테이트3차(불광3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 불광로14길 10-4", "households": 147, "wait": 21, "out": 5}, {"lat": 37.611902261804, "lng": 126.936193926578, "color": "#2e8b57", "watch": false, "desc": "2010년 준공 (16년차), 복도식, 승강기 있음", "rent": "보증금 3,849만원, 월 34.4만원 (38㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "북한산래미안(불광6)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 불광로2길 41", "households": 135, "wait": 3, "out": 2}, {"lat": 37.6155775838965, "lng": 126.926849301879, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 3,637만원, 월 30.1만원 (38㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "북한산힐스테이트(불광7)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 통일로 792", "households": 188, "wait": 0, "out": 2}, {"lat": 37.589638053786, "lng": 126.925108750717, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 2,664만원, 월 17.7만원 (30㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "백련산힐스테이트1차(응암7)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 백련산로2길 39", "households": 78, "wait": 0, "out": 1}, {"lat": 37.5896552703221, "lng": 126.924704302429, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 2,326만~2,416만원, 월 15.3만~15.9만원 (31~32㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "백련산힐스테이트2차(응암8)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 백련산로2길 42", "households": 255, "wait": 0, "out": 10}, {"lat": 37.5892597570971, "lng": 126.924849666729, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 2,227만~2,359만원, 월 14.3만~15.2만원 (32㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "백련산힐스테이트3차(응암9)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 백련산로2길 46", "households": 219, "wait": 3, "out": 6}, {"lat": 37.5990518245176, "lng": 126.926225426635, "color": "#2e8b57", "watch": false, "desc": "2013년 준공 (13년차), 복도식, 승강기 있음", "rent": "보증금 1,680만~2,488만원, 월 18.2만~27.0만원 (40~59㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "녹번센트레빌(응암3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 백련산로 160", "households": 60, "wait": 0, "out": 1}, {"lat": 37.6127416111059, "lng": 126.934492417899, "color": "#2e8b57", "watch": false, "desc": "2013년 준공 (13년차), 복도식, 승강기 있음", "rent": "보증금 1,830만~2,470만원, 월 19.9만~26.8만원 (33~44㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "불광롯데캐슬(불광4)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 불광로2길 27", "households": 100, "wait": 0, "out": 3}, {"lat": 37.5981826757464, "lng": 126.926833989556, "color": "#e69f00", "watch": false, "desc": "2007년 준공 (19년차), 복도식, 승강기 있음", "rent": "보증금 1,835만원, 월 19.7만원 (30㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "응암SH-ville(응암6)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 백련산로 146-30", "households": 136, "wait": 15, "out": 6}, {"lat": 37.6054109067025, "lng": 126.936243023434, "color": "#2e8b57", "watch": false, "desc": "2015년 준공 (11년차), 복도식, 승강기 있음", "rent": "보증금 2,883만~3,855만원, 월 15.9만~21.3만원 (38~51㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "북한산푸르지오(녹번1-3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 통일로 660", "households": 155, "wait": 0, "out": 1}, {"lat": 37.5962520968938, "lng": 126.905270568851, "color": "#2e8b57", "watch": false, "desc": "2017년 준공 (9년차), 계단식, 승강기 없음", "rent": "보증금 500만원, 월 10.8만~11.8만원 (14~15㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "은평구 산새마을(신사동237-231) 두레주택 사업", "type": "10년임대", "inst": "SH공사", "addr": "서울특별시 은평구 가좌로11나길 23", "households": 0, "wait": 0, "out": 0}, {"lat": 37.5891696743066, "lng": 126.922569777335, "color": "#2e8b57", "watch": false, "desc": "2017년 준공 (9년차), 계단식, 승강기 있음", "rent": "보증금 30,420만~37,440만원 (60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "힐스테이트백련산4차", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 백련산로 37", "households": 30, "wait": 0, "out": 0}, {"lat": 37.601325823628, "lng": 126.936084940697, "color": "#2e8b57", "watch": false, "desc": "2018년 준공 (8년차), 복도식, 승강기 있음", "rent": "보증금 2,583만~3,316만원, 월 14.8만~19.1만원 (39~50㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "힐스테이트녹번(녹번제1-1구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 통일로 610", "households": 76, "wait": 0, "out": 0}, {"lat": 37.6027754033021, "lng": 126.936356328975, "color": "#2e8b57", "watch": false, "desc": "2018년 준공 (8년차), 복도식, 승강기 있음", "rent": "보증금 3,004만~4,029만원, 월 16.0만~21.4만원 (38~52㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "래미안베라힐즈아파트(녹번1-2구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 통일로 630", "households": 125, "wait": 0, "out": 3}, {"lat": 37.5956260260165, "lng": 126.921108910944, "color": "#2e8b57", "watch": false, "desc": "2019년 준공 (7년차), 혼합식, 승강기 있음", "rent": "보증금 2,505만~3,519만원, 월 15.2만~21.3만원 (36~51㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "백련산SK VIEW IPARK아파트(응암10구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 응암로30길 16", "households": 146, "wait": 0, "out": 2}, {"lat": 37.5962520968938, "lng": 126.905270568851, "color": "#2e8b57", "watch": false, "desc": "2017년 준공 (9년차), 계단식, 승강기 없음", "rent": "보증금 500만원, 월 11.2만~13.5만원 (15~16㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "은평구 신사동 237-231 산새마을 두레주택(현물출자)", "type": "매입임대", "inst": "SH공사", "addr": "서울특별시 은평구 가좌로11나길 23", "households": 5, "wait": 0, "out": 0}, {"lat": 37.5958904379804, "lng": 126.921183382147, "color": "#2e8b57", "watch": false, "desc": "2020년 준공 (6년차), 복도식, 승강기 있음", "rent": "보증금 2,885만~4,030만원, 월 17.6만~24.6만원 (39~55㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "백련산해모로(응암11)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 응암로30길 15", "households": 60, "wait": 0, "out": 2}, {"lat": 37.6009611747319, "lng": 126.932098545311, "color": "#2e8b57", "watch": false, "desc": "2020년 준공 (6년차), 혼합식, 승강기 있음", "rent": "보증금 3,085만~4,586만원, 월 17.8만~26.4만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "녹번역이편한세상캐슬(응암2구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 은평로 220", "households": 227, "wait": 0, "out": 3}, {"lat": 37.5843169639524, "lng": 126.891505272475, "color": "#2e8b57", "watch": false, "desc": "2020년 준공 (6년차), 혼합식, 승강기 있음", "rent": "보증금 3,530만~5,145만원, 월 19.1만~27.8만원 (40~60㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "DMC롯데캐슬더퍼스트(수색4구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 수색로 300", "households": 0, "wait": 0, "out": 0}, {"lat": 37.6007527968218, "lng": 126.934698742078, "color": "#2e8b57", "watch": false, "desc": "2021년 준공 (5년차), 복도식, 승강기 있음", "rent": "보증금 4,099만~4,368만원, 월 18.2만~19.4만원 (39~42㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "힐스테이트녹번역(응암1구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 은평로 240", "households": 47, "wait": 0, "out": 1}, {"lat": 37.5805945353, "lng": 126.899562719339, "color": "#2e8b57", "watch": false, "desc": "2021년 준공 (5년차), 계단식, 승강기 있음", "rent": "보증금 46,875만~59,436만원 (60~85㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "DMC SK뷰_장기전세주택", "type": "장기전세", "inst": "SH공사", "addr": "서울특별시 은평구 수색로 216", "households": 8, "wait": 0, "out": 0}, {"lat": 37.5800096781841, "lng": 126.904343217359, "color": "#2e8b57", "watch": false, "desc": "2022년 준공 (4년차), 복도식, 승강기 있음", "rent": "보증금 3,678만~4,695만원, 월 18.0만~22.9만원 (39~51㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "DMC센트럴자이(증산2)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 수색로 200", "households": 72, "wait": 0, "out": 1}, {"lat": 37.5800096781841, "lng": 126.904343217359, "color": "#2e8b57", "watch": false, "desc": "2022년 준공 (4년차), 복도식, 승강기 있음", "rent": "보증금 4,237만~4,320만원, 월 20.7만~21.1만원 (39~40㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "은평", "name": "DMC센트럴자이(증산2)_2단지", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 은평구 수색로 200", "households": 37, "wait": 0, "out": 1}, {"lat": 37.5549110405477, "lng": 127.012343766241, "color": "#2e8b57", "watch": false, "desc": "1999년 준공 (27년차), 복도식, 승강기 있음", "rent": "보증금 1,153만원, 월 14.8만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "약수하이츠동아(신당4)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 동호로10길 30", "households": 684, "wait": 0, "out": 20}, {"lat": 37.5584043464133, "lng": 127.016704125763, "color": "#2e8b57", "watch": false, "desc": "1999년 준공 (27년차), 복도식, 승강기 있음", "rent": "보증금 1,210만원, 월 15.9만원 (32㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "신당삼성(신당5)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 청구로1길 23", "households": 440, "wait": 0, "out": 14}, {"lat": 37.5636894648887, "lng": 127.026057914938, "color": "#2e8b57", "watch": false, "desc": "2001년 준공 (25년차), 복도식, 승강기 있음", "rent": "보증금 944만원, 월 13.0만원 (27㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "한진해모로(하왕1-2)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 왕십리로39길 30", "households": 116, "wait": 0, "out": 4}, {"lat": 37.5475966299506, "lng": 127.006709119336, "color": "#2e8b57", "watch": false, "desc": "2002년 준공 (24년차), 복도식, 승강기 있음", "rent": "보증금 1,379만원, 월 17.1만원 (33㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "남산타운(신당3)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 다산로 32", "households": 2034, "wait": 0, "out": 31}, {"lat": 37.5575368344896, "lng": 126.964253241291, "color": "#2e8b57", "watch": false, "desc": "2000년 준공 (26년차), 복도식, 승강기 있음", "rent": "보증금 1,587만원, 월 18.6만원 (32㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "중림삼성(충정삼성)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 중림로4길 41", "households": 355, "wait": 0, "out": 9}, {"lat": 37.5715295977448, "lng": 127.021769650428, "color": "#2e8b57", "watch": false, "desc": "2008년 준공 (18년차), 복도식, 승강기 있음", "rent": "보증금 2,382만원, 월 26.5만원 (34㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "황학롯데캐슬(황학)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 청계천로 400", "households": 336, "wait": 0, "out": 6}, {"lat": 37.561926741875, "lng": 127.021998487899, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 3,290만원, 월 19.1만원 (38㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "래미안신당하이베르(신당6)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 퇴계로90길 74", "households": 161, "wait": 0, "out": 1}, {"lat": 37.5603446507042, "lng": 127.015448768812, "color": "#2e8b57", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 3,052만~3,054만원, 월 17.2만원 (36㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "청구e편한세상(신당7)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 청구로 64", "households": 158, "wait": 0, "out": 3}, {"lat": 37.5543084084311, "lng": 126.9620540361, "color": "#2e8b57", "watch": false, "desc": "2015년 준공 (11년차), 혼합식, 승강기 있음", "rent": "보증금 3,846만~9,470만원, 월 1.6만~3.3만원 (22~54㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "만리동 예술인 협동조합형 공동주택", "type": "국민임대", "inst": "SH공사", "addr": "서울특별시 중구 만리재로27길 69", "households": 29, "wait": 0, "out": 0}, {"lat": 37.5545885431708, "lng": 126.965032824028, "color": "#2e8b57", "watch": false, "desc": "2017년 준공 (9년차), 복도식, 승강기 있음", "rent": "보증금 3,470만~4,127만원, 월 14.9만~17.8만원 (40~47㎡)", "site": "SH 인터넷청약시스템", "siteUrl": "https://www.i-sh.co.kr/app", "noticeTitle": "", "noticeUrl": "", "gu": "중구", "name": "서울역 센트럴자이(만리2구역)", "type": "50년임대", "inst": "SH공사", "addr": "서울특별시 중구 만리재로 175", "households": 192, "wait": 0, "out": 2}, {"lat": 37.3202499268528, "lng": 126.955318518465, "color": "#888", "watch": false, "desc": "2005년 준공 (21년차), 복도식, 승강기 있음", "rent": "보증금 2,184만~3,140만원, 월 17.1만~28.3만원 (37~53㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "장안마을주공아파트", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 신장승길 12", "households": 467, "wait": 45, "out": 12}, {"lat": 37.3918808279456, "lng": 126.998803037349, "color": "#888", "watch": false, "desc": "2007년 준공 (19년차), 복도식, 승강기 있음", "rent": "보증금 1,940만~6,266만원, 월 16.2만~38.5만원 (37~60㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "청계마을 휴먼시아3단지", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 청계1로 28", "households": 506, "wait": 59, "out": 14}, {"lat": 37.3909723080084, "lng": 127.000304886674, "color": "#888", "watch": false, "desc": "2007년 준공 (19년차), 복도식, 승강기 있음", "rent": "보증금 1,940만~3,436만원, 월 16.2만~26.0만원 (37~47㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "청계마을휴먼시아 5단지", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 청계1로 10", "households": 244, "wait": 31, "out": 11}, {"lat": 37.3907656628839, "lng": 127.000256539423, "color": "#888", "watch": false, "desc": "2007년 준공 (19년차), 복도식, 승강기 있음", "rent": "보증금 4,501만~6,266만원, 월 30.7만~38.5만원 (52~60㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "청계마을 휴먼시아6단지", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 청계1로 9", "households": 243, "wait": 37, "out": 5}, {"lat": 37.3780885946262, "lng": 126.972322022044, "color": "#2e8b57", "watch": false, "desc": "2003년 준공 (23년차), 계단식, 승강기 있음", "rent": "보증금 2,157만~2,498만원, 월 28.8만~33.9만원 (51~60㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "의왕내손주공아파트", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 갈미1로 22", "households": 822, "wait": 6, "out": 30}, {"lat": 37.3971094198316, "lng": 126.986225069361, "color": "#888", "watch": false, "desc": "2011년 준공 (15년차), 복도식, 승강기 있음", "rent": "보증금 2,153만~5,629만원, 월 14.7만~38.5만원 (27~56㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "포일숲속마을 휴먼시아 1단지", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 포일세거리로 23", "households": 659, "wait": 76, "out": 29}, {"lat": 37.4009700643514, "lng": 126.98794666407, "color": "#888", "watch": false, "desc": "2013년 준공 (13년차), 복도식, 승강기 있음", "rent": "보증금 1,510만~5,421만원, 월 20.0만~41.0만원 (27~56㎡)", "site": "LH 청약플러스", "siteUrl": "https://apply.lh.or.kr", "noticeTitle": "", "noticeUrl": "", "gu": "의왕", "name": "포일숲속마을2단지", "type": "국민임대", "inst": "LH경기남부", "addr": "경기도 의왕시 이미로 17", "households": 840, "wait": 79, "out": 40}];
+const nps=[{"id": "SH:310107", "tag": "접수 중", "title": "(수정) 2026년 2차 장기미임대 매입임대주택 입주자모집공고(2026. 8. 28.)", "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=310107&amp;multi_itm_seq=2", "addr": "은평구 갈현로15길 26", "lat": 37.6080838, "lng": 126.9080363}, {"id": "SH:310673", "tag": "관심 지역 밖", "title": "2026년 신정도시마을 잔여세대 입주자모집공고(26. 9. 23.)", "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/view.do?seq=310673&amp;multi_itm_seq=2", "addr": "양천구 신정로13가길 6", "lat": 37.5121153, "lng": 126.8434394}];
+const REQ_URL="https://ntfy.sh/rent-mom-kg-7x3vq9m2ta-req";
+document.querySelectorAll('.ask').forEach(b=>{
+  const id=b.dataset.id, key='ask:'+id;
+  let asked=0; try{asked=Number(localStorage.getItem(key)||0)}catch(e){}
+  const mark=()=>{b.disabled=true;b.textContent='요청 완료, 15분 안에 요약이 올라옵니다';};
+  if(Date.now()-asked<2*3600*1000) mark();
+  b.addEventListener('click',async()=>{
+    b.disabled=true;b.textContent='요청 보내는 중';
+    try{
+      const r=await fetch(REQ_URL,{method:'POST',body:id,headers:{'Title':'summary request'}});
+      if(!r.ok) throw new Error(r.status);
+      try{localStorage.setItem(key,String(Date.now()))}catch(e){}
+      mark();
+    }catch(e){b.disabled=false;b.textContent='요청 실패, 다시 눌러주세요';}
+  });
+});
+document.querySelectorAll('.mark').forEach(b=>{
+  const id=b.dataset.id, key='applied:'+id;
+  let t=0; try{t=Number(localStorage.getItem(key)||0)}catch(e){}
+  const done=()=>{b.disabled=true;b.textContent='표시 완료, 15분 안에 반영됩니다';};
+  if(Date.now()-t<2*3600*1000) done();
+  b.addEventListener('click',async()=>{
+    if(!confirm('이 공고를 신청 완료로 표시할까요? 이후 발표와 서류 제출 일정을 알려 드립니다.')) return;
+    b.disabled=true;b.textContent='보내는 중';
+    try{
+      const r=await fetch(REQ_URL,{method:'POST',body:'applied:'+id,headers:{'Title':'applied'}});
+      if(!r.ok) throw new Error(r.status);
+      try{localStorage.setItem(key,String(Date.now()))}catch(e){}
+      done();
+    }catch(e){b.disabled=false;b.textContent='보내기 실패, 다시 눌러주세요';}
+  });
+});
+const ptabs=document.querySelectorAll('#ptabs button');
+function pane(t){
+  ptabs.forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('.pane').forEach(p=>p.hidden=(p.dataset.pane!==t));
+  document.getElementById('panel').scrollTop=0;
+  try{localStorage.setItem('pane',t)}catch(e){}
+}
+ptabs.forEach(b=>b.addEventListener('click',()=>pane(b.dataset.t)));
+try{const last=localStorage.getItem('pane'); if(last&&document.querySelector('.pane[data-pane="'+last+'"]')) pane(last);}catch(e){}
+const map=L.map('map',{zoomControl:true});
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
+const g=L.featureGroup(); const byKey={};
+pts.forEach(p=>{
+  const hot=!!p.noticeUrl;
+  const m=L.circleMarker([p.lat,p.lng],{radius:6+Math.min(p.out,20)*0.5,color:hot?'#c0392b':(p.watch?'#1f4fd1':'#333'),weight:(hot||p.watch)?3:1,fillColor:p.color,fillOpacity:.9});
+  const q=encodeURIComponent(p.addr||p.name);
+  let html=`<b class="name">${p.name}</b>${p.watch?' <span style="color:#1f4fd1;font-weight:700">관심 단지</span>':''}<br>${p.gu} / ${p.type} / ${p.inst}${p.desc?'<br>'+p.desc:''}${p.rent?'<br>'+p.rent:''}<br>대기 <b>${p.wait}명</b>, 최근 1년 퇴거 <b>${p.out}건</b>, 총 ${p.households}세대<br>${p.addr} <a href="https://map.naver.com/p/search/${q}" target="_blank">네이버지도</a>`;
+  if(hot) html+=`<br><b style="color:#c0392b">지금 접수 중:</b> <a href="${p.noticeUrl}" target="_blank">${p.noticeTitle}</a>${p.watch?' (공고문 단지 목록에서 이 단지가 있는지 확인)':''}`;
+  html+=`<br><b>신청:</b> <a href="${p.siteUrl}" target="_blank">${p.site}</a>에서 이 단지 모집공고가 뜰 때 청약 → 예비번호 → 빈집 나오면 순번 계약`;
+  m.bindPopup(html,{maxWidth:320});
+  g.addLayer(m); byKey[p.name+'|'+p.type]=m;
+});
+g.addTo(map);
+if(pts.length) map.fitBounds(g.getBounds().pad(0.12)); else map.setView([37.55,126.95],11);
+const pinsById={};
+nps.forEach(n=>{
+  const c=n.tag==='관심 지역 밖'?'#8a9794':'#c0392b';
+  const icon=L.divIcon({className:'npin',html:`<span style="background:${c}"></span>`,iconSize:[22,24],iconAnchor:[11,22],popupAnchor:[0,-20]});
+  const q=encodeURIComponent(n.addr);
+  const m=L.marker([n.lat,n.lng],{icon}).bindPopup(`<b style="color:${c}">${n.tag}</b><br><a href="${n.url}" target="_blank"><b class="name">${n.title}</b></a><br>${n.addr} <a href="https://map.naver.com/p/search/${q}" target="_blank">네이버지도</a>`,{maxWidth:320}).addTo(map);
+  (pinsById[n.id]=pinsById[n.id]||[]).push(m);
+});
+
+const panel=document.getElementById('panel'), mapwrap=document.getElementById('mapwrap');
+const tabList=document.getElementById('tabList'), tabMap=document.getElementById('tabMap');
+const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
+function show(which){
+  if(!isMobile()){panel.hidden=false;mapwrap.hidden=false;return;}
+  panel.hidden=(which==='map'); mapwrap.hidden=(which!=='map');
+  tabList.classList.toggle('on',which!=='map'); tabMap.classList.toggle('on',which==='map');
+  if(which==='map') setTimeout(()=>map.invalidateSize(),50);
+}
+tabList.onclick=()=>show('list'); tabMap.onclick=()=>show('map');
+window.addEventListener('resize',()=>{show(mapwrap.hidden?'list':'map'); map.invalidateSize();});
+show('list');
+document.querySelectorAll('.regions button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.regions button').forEach(x=>x.classList.toggle('on',x===b));
+  const sel=b.dataset.r==='all'?pts:pts.filter(p=>p.gu===b.dataset.r);
+  if(!sel.length) return;
+  map.fitBounds(L.latLngBounds(sel.map(p=>[p.lat,p.lng])).pad(0.15));
+}));
+document.querySelectorAll('.danji').forEach(el=>el.addEventListener('click',()=>{
+  const m=byKey[el.dataset.name+'|'+el.dataset.type]; if(!m) return;
+  show('map'); setTimeout(()=>{map.invalidateSize(); map.setView(m.getLatLng(),15); m.openPopup();},80);
+}));
+document.querySelectorAll('.loc').forEach(b=>b.addEventListener('click',()=>{
+  const ms=pinsById[b.dataset.id]; if(!ms) return;
+  show('map'); setTimeout(()=>{map.invalidateSize();
+    if(ms.length>1) map.fitBounds(L.latLngBounds(ms.map(m=>m.getLatLng())).pad(0.3),{maxZoom:15}); else map.setView(ms[0].getLatLng(),15);
+    ms[0].openPopup();},80);
+}));
+</script>
+</body>
+</html>
